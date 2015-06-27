@@ -1,0 +1,48 @@
+{
+  "name": "iopa-mqtt",
+  "main": "lib/index.js",
+  "description": "Lightweight Message Queuing Telemetry Transport (MQTT) protocol server, based on Internet of Protocols Association (IOPA) open standard",
+  "author": "IOPA",
+  "maintainers": [
+    {
+      "name": "limerun",
+      "email": "build@limerun.com"
+    }
+  ],
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/limerun/iopa-mqtt.git"
+  },
+  "dependencies": {
+    "bl": "~0.9.0",
+    "bluebird": "*",
+    "iopa": "*",
+    "lru-cache": "~2.5.0",
+    "mqtt-packet": "~3.2.0",
+    "node-uuid": "^1.4.3"
+  },
+  "keywords": [
+    "limerun",
+    "iopa",
+    "owin",
+    "middleware",
+    "node-mqtt",
+    "mqtt",
+    "app",
+    "demo",
+    "mac",
+    "osx",
+    "promise",
+    "framework"
+  ],
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.12.0"
+  }
+}
