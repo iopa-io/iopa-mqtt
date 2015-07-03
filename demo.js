@@ -59,12 +59,12 @@ var client;
      client = cl;
       console.log("Client is on port " + client["server.LocalPort"]);
       var context = client["server.createRequest"]("/", "CONNECT");
-      return context["iopa.Body"].send();
+      return context.send();
    })
     .then(function(response){
          console.log("MQTT DEMO Response " + response["iopa.Method"]);
          var context = client["server.createRequest"]("/projector", "SUBSCRIBE");
-         return context["iopa.Body"].observe(function(observe){
+         return context.observe(function(observe){
              console.log("MQTT DEMO Observation " + observe["iopa.Method"]);
          });
       })
