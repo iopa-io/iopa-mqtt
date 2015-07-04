@@ -9,7 +9,7 @@
       "email": "build@limerun.com"
     }
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/limerun/iopa-mqtt.git"
