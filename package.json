@@ -17,7 +17,7 @@
   "dependencies": {
     "bluebird": "*",
     "iopa": "*",
-    "iopa-core": "*",
+    "iopa-server": "*",
     "iopa-tcp": "*",
     "mqtt-packet": "~3.2.0"
   },
