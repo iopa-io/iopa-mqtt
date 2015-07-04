@@ -46,7 +46,7 @@ var clientOptions = { "server.IsGlobalClient" : true
 var server = mqtt.createServer(serverOptions, app.build());
 
 if (!process.env.PORT)
-  process.env.PORT = mqtt.constants.mqttPort;
+  process.env.PORT = 1883;
 
 var context;
 var client;
@@ -64,11 +64,10 @@ var client;
     .then(function(response){
          console.log("MQTT DEMO Response " + response["iopa.Method"]);
          var context = client["server.createRequest"]("/projector", "SUBSCRIBE");
-         return context.observe(function(observe){
-             console.log("MQTT DEMO Observation " + observe["iopa.Method"]);
-         });
+         return context.send();
       })
        .then(function(response){
          console.log("MQTT DEMO Response " + response["iopa.Method"]);
+         server.close().then(function(){console.log("MQTT DEMO Closed");});
       });
       

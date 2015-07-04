@@ -9,18 +9,17 @@
       "email": "build@limerun.com"
     }
   ],
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/limerun/iopa-mqtt.git"
   },
   "dependencies": {
-    "bl": "~0.9.0",
     "bluebird": "*",
     "iopa": "*",
-    "lru-cache": "~2.5.0",
-    "mqtt-packet": "~3.2.0",
-    "node-uuid": "^1.4.3"
+    "iopa-core": "*",
+    "iopa-tcp": "*",
+    "mqtt-packet": "~3.2.0"
   },
   "keywords": [
     "limerun",

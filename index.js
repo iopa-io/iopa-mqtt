@@ -16,6 +16,4 @@
  */
 
 var Server = require('./lib/server/mqttServer.js');
-var constants = require('./lib/common/constants.js');
 module.exports.createServer = Server;
-module.exports.constants = constants;
