@@ -1,6 +1,6 @@
 /*
- * Copyright 2015 Domabo
- * Portions copyright (c) 2013-2014 node-coap contributors.
+ * Copyright (c) 2015 Limerun Project Contributors
+ * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

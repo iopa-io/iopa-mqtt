@@ -12,8 +12,8 @@ notifications:
 
 env:
  global:
-  - secure: XO4pd86vg9YDKHfNdt+b2qIaB59/tmE3L8C/Zy4bc5oPB9LAYWtHZGtVdiqBn0gxZgErvckxg33kdzDJxjEEcU6ZeK5BvoFG0ei47+qdxBQJM7jJgZIsestGuokecSgYCHkI/leaTq/tYR0caxNOC0cmpJLFLrJfF1M4ysJaTJC5f93jPLwnxtgkv6459WZLr2WExGAWzA1eki7n/+4C1O7dOazyUtKcheYuCzrmRvVD8r1PYPuZb3fVxgK2kwlMA3p6lPrZkuDXKeWVmbitNO/SgAYOqyyDgOE2KFgZPg1IcdiQU7Er9DSLN0BtcJioUxtaf3492jlAfNTTa4eIow==
- before_install:
+  - secure: WIY4d5thBFePzcPxggO/CwkuA4PkqH6Rzd07H106GONdCz2+RF9mrEW4Z9wAFue4o3JGfG0dJdIOVoj3keZLryP6JtKNNmPSKrZvcw278bIt5uUuljlnBgjQ6lXRMaO7ocPqJosdnk0agCiArmLBO3w1iFKLuH1kLCaahrh0DOPpDdxRB37jLvK0y1RR9KInbACQXwjrMmS3Jmpl3txFZZcdkUuXH91U6CoVyjheROFeP8hVKOBOxfzHfpSkp0bQI6ckLQEEn8NOiEmfoxpFOAreBqsVc9iiCT/R50obEabEJnm2+H7bekYZQR1lA/imgljL1tYngqhdLTrx8QY1sw==
+  before_install:
   - source ~/.nvm/nvm.sh && nvm install $SHIPPABLE_NODE_VERSION
   - node --version
 
