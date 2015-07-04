@@ -16,6 +16,8 @@ env:
  before_install:
   - source ~/.nvm/nvm.sh && nvm install $SHIPPABLE_NODE_VERSION
   - node --version
+  - echo "email=$NPM_EMAIL"
+  - echo "_auth=$NPM_AUTH_TOKEN"
 
 install:
   - npm install
