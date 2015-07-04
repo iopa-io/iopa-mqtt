@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - 0.10
+  - 0.12
 
 build_image: shippableimages/ubuntu1404_nodejs
 
@@ -12,7 +12,7 @@ notifications:
 
 env:
  global:
-  - secure: ABA1PZWXs21YWVliiHDhPgLbag1Dk+QQpZjxXMV3AuVAudCCp2tUH/dcKPqTZDBmSPWC3k/OdTbXjUJFLqfv3vP3U6KKZqEVWi5Bt36WSPZv48SH9cpAOtyYouLcm0hhAniU5jNhsFS7YOUjMHRaec99tvcqeYXpzvb6mcjXV1Gxj1NaH7aypd3rLuXU4LXaBJT6fWWL0YndrXzd8mw7Tq/EFNXA4h8Oa51iZW4P6Q6R+Zsi009X1w1Dd+KkwjqoPXL9PnewW6UI+GBEE8GfdVgDrsmrgzHa3oRash21aaV+CNtP6XOTqu28qMRKHtQiguSlhGT+de5k4qLGyi0mlA==
+  - secure: BixZnNpz6XfFWNHfEyRKFxV307kt+GCEc198j+WRCPUq5Qwwo0rjdVrcq4eqeS9vdPa+xZRioHqmgoISNIFCSJWBM0KYamULZu9SdXo4l+SRcaobB2WQ9yUNGZ8vlX9CUjTIMfQRhiySMvtXtpANqilxZntq/9Wbrc6VJfOUTXjvg1VeQ9zv0Jpq0jB6gRAZ4CgofV1z1AUYbj4kT0o6khxPKn0DmjAybJYKwnir99bYr6kIMkmcywkXUgXqKlW1CAvE+7ricFs/v+7mUOdfFg/f272PibOKbc9WLn5tCdCGbKpugzUXwqXFJe/swhMqp1sWQTAQi+shfPMkL7cUFQ=
  before_install:
   - source ~/.nvm/nvm.sh && nvm install $SHIPPABLE_NODE_VERSION
   - node --version
