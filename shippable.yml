@@ -16,8 +16,6 @@ env:
  before_install:
   - source ~/.nvm/nvm.sh && nvm install $SHIPPABLE_NODE_VERSION
   - node --version
-  - echo "email=$NPM_EMAIL"
-  - echo "_auth=$NPM_AUTH_TOKEN"
 
 install:
   - npm install
@@ -27,8 +25,7 @@ after_success:
   - git config user.name $GIT_USER
   - git config --global push.default matching
   - git checkout $BRANCH
-  - echo "email=$NPM_EMAIL" > ~/.npmrc
-  - echo "_auth=$NPM_AUTH_TOKEN" >> ~/.npmrc
+  - echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" >> ~/.npmrc
   - npm version patch --message "auto-publish %s via SHIPPABLE [ci skip] [skip ci]"
   - git remote set-url origin ssh://git@github.com/$REPO_NAME
   - git push
