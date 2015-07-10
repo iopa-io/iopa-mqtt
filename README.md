@@ -96,7 +96,7 @@ var serverOptions = {
 var server = mqtt.createServer(serverOptions, app.build());
 
 Promise.join( server.listen(process.env.PORT, process.env.IP)).then(function(){
-   console.log("Server is on port " + server.port );
+   server.log.info("Server is on port " + server.port );
   
    server.clientCreateRequest('mqtt://127.0.0.1:' + server.port + '/projector', "GET")
    .then(function(context) {
