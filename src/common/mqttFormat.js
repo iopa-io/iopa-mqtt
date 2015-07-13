@@ -17,7 +17,7 @@
  var Promise = require('bluebird')
     , MqttPacket = require('mqtt-packet')
     , util = require('util')
-    , iopaStream = require('iopa-server').Stream
+    , iopaStream = require('iopa-common-stream')
     , iopaContextFactory = require('iopa').context.factory
     
 // SETUP REQUEST DEFAULTS 

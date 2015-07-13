@@ -20,7 +20,7 @@ var Promise = require('bluebird');
 
 var iopa = require('iopa');
 var TcpServer = require('iopa-tcp');
-var IopaServer = require('iopa-server').Server;
+var IopaServer = require('iopa-server');
 var MqttFormat = require('../common/mqttFormat.js');
 
 var MQTTPacketServer = require('../middleware/mqttPacketServer.js');
@@ -28,10 +28,10 @@ var MQTTClientChannel = require('../middleware/mqttClientChannel.js');
 var MQTTMessageCreateDefaults = require('../middleware/mqttMessageCreateDefaults.js');
 var MQTTClientPacketSend = require('../middleware/mqttClientPacketSend.js');
 var MQTTAutoAck = require('../middleware/mqttAutoAck.js');
-var iopaAuditLog = require('iopa-server').AuditLog;
-var BackForth = require('iopa-server').BackForth;
-var ClientSend = require('iopa-server').ClientSend;
-var iopaCacheMatch = require('iopa-server').Cache;
+var iopaAuditLog = require('iopa-common-middleware').AuditLog;
+var BackForth = require('iopa-common-middleware').BackForth;
+var ClientSend = require('iopa-common-middleware').ClientSend;
+var iopaCacheMatch = require('iopa-common-middleware').Cache;
 
 /* *********************************************************
  * IOPA MQTT SERVER / CLIENT WITH MIDDLEWARE CONSTRUCTED

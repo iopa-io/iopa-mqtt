@@ -15,5 +15,5 @@
  * limitations under the License.
  */
 
-var Server = require('./lib/server/mqttServer.js');
+var Server = require('./src/server/mqttServer.js');
 module.exports.createServer = Server;

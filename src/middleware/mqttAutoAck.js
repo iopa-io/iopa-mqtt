@@ -16,7 +16,7 @@
  */
 
 var MqttFormat = require('../common/mqttFormat.js')
-    , iopaStream = require('iopa-server').Stream;
+    , iopaStream = require('iopa-common-stream');
     
 /**
  * MQTT IOPA Middleware for Auto Acknowledging Server Requests
