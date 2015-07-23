@@ -23,13 +23,14 @@ const iopa = require('iopa')
 
 var app = new iopa.App();
 
+
 app.use(function(context, next){
    context.log.info("MQTT DEMO " + context["iopa.Method"]);
    
    if (context["iopa.Method"] === "SUBSCRIBE")
    {
      setTimeout(function() {
-                context.log.info("TO DO: SEND OBSERVATION");
+               server.publish("/projector", new Buffer("Hello World 2"));
             }, 1000);
    }
 
@@ -59,16 +60,21 @@ var client;
    .then(function(cl){
      client = cl;
       server.log.info("Client is on port " + client["server.LocalPort"]);
-      var context = client["server.createRequest"]("/", "CONNECT");
+      return client.connect("HELLO", false);
       return context.send();
    })
     .then(function(response){
          server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-         var context = client["server.createRequest"]("/projector", "SUBSCRIBE");
-         return context.send();
-      })
+         return client.subscribe("/projector", function(context){
+             console.log("/projector RESPONSE " + context["iopa.Body"].toString());
+             });
+          })
        .then(function(response){
          server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-         server.close().then(function(){server.log.info("MQTT DEMO Closed");});
+         server.publish("/projector", new Buffer("Hello World"));
+      })
+       .then(function(response){
+       //  server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
+      //   server.close().then(function(){server.log.info("MQTT DEMO Closed");});
       });
       

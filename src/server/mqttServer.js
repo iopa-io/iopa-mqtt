@@ -28,6 +28,8 @@ var MQTTClientChannel = require('../middleware/mqttClientChannel.js');
 var MQTTMessageCreateDefaults = require('../middleware/mqttMessageCreateDefaults.js');
 var MQTTClientPacketSend = require('../middleware/mqttClientPacketSend.js');
 var MQTTAutoAck = require('../middleware/mqttAutoAck.js');
+var MQTTSessionManager = require('../middleware/mqttSessionManager.js');
+var MQTTSessionClient = require('../middleware/mqttSessionClient.js');
 var iopaAuditLog = require('iopa-common-middleware').AuditLog;
 var BackForth = require('iopa-common-middleware').BackForth;
 var ClientSend = require('iopa-common-middleware').ClientSend;
@@ -87,6 +89,7 @@ MQTTServer.prototype._serverRequestPipelineSetup = function (app) {
       };
     app.use(iopaAuditLog);
     app.use(MQTTMessageCreateDefaults);
+    app.use(MQTTSessionManager);
     app.use(MQTTAutoAck);
 };
 
@@ -100,6 +103,7 @@ MQTTServer.prototype._clientChannelPipelineSetup = function (clientChannelApp) {
  // clientChannelApp.use(BackForth);
   clientChannelApp.use(ClientSend);
   clientChannelApp.use(iopaCacheMatch.Match);
+  clientChannelApp.use(MQTTSessionClient);
 };
 
 /**

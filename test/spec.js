@@ -83,6 +83,17 @@ describe('#MQTT Server()', function() {
          });
     });
     
+    it('should publish items via MQTT', function(done) {
+      
+      server.
+         var context = client["server.createRequest"]("/projector", "SUBSCRIBE");
+         context.send().then(function(response){
+           server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
+           response["iopa.Method"].should.equal('SUBACK');
+           done();
+         });
+    });
+    
     it('should close', function(done) {
        server.close().then(function(){
          server.log.info("MQTT DEMO Closed");

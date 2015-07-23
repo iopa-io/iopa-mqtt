@@ -31,7 +31,7 @@ function MQTTClientChannel(app) {
     if (!app.properties["server.Capabilities"]["iopa-mqtt.Version"])
         throw ("Missing Dependency: MQTT Server/Middleware in Pipeline");
 
-   app.properties["server.Capabilities"]["MQTTAutoAck.Version"] = "1.0";
+   app.properties["server.Capabilities"]["MQTTClientChannel.Version"] = "1.0";
 }
 
 MQTTClientChannel.prototype.invoke = function MQTTClientChannel_invoke(channelContext, next){

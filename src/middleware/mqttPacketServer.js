@@ -41,7 +41,8 @@ function MQTTPacketServer(app) {
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTPacketServer.prototype.invoke = function MQTTPacketServer(channelContext, next) {
-    
+    channelContext["iopa.Scheme"] = "mqtt";
+ 
     MqttFormat.inboundParseMonitor(channelContext, "request");
     
     return next().then(function(){ return new Promise(function(resolve, reject){

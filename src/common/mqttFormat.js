@@ -63,7 +63,7 @@ module.exports.sendRequest = function mqttFormat_SendRequest(context) {
            packet.dup = context["mqtt.Dup"];
            packet.retain = context["mqtt.Retain"];
            packet.topic = context["iopa.Path"];
-           packet.payload = context["iopa.Body"].slice();
+           packet.payload = context["iopa.Body"].toBuffer();
            packet.length = packet.payload.length;
            break; 
         case "PINGREQ":
@@ -108,7 +108,8 @@ module.exports.inboundParseMonitor = function ResponseParser(parentContext, even
         context.response["server.RawStream"] = parentContext.response["server.RawStream"];    
         context["server.Logger"] = parentContext["server.Logger"];
         
-        context["mqtt.ParentContext"] = parentContext;
+        context["server.ChannelContext"] = parentContext;
+        context["server.createRequest"] = parentContext["server.createRequest"];
         _parsePacket(packet, context);
       
         parentContext["iopa.Events"].emit(eventType, context);
@@ -160,7 +161,6 @@ module.exports.defaultContext = function MQTTPacketClient_defaultContext(context
        context["mqtt.Qos"] = 0;
        context["mqtt.Dup"] = false;
        context["mqtt.Retain"] = false;
-       context["mqtt.Topic"] = context["iopa.Path"];
        break; 
     case "PINGREQ":
        context["iopa.MessageId"] = "ping";
@@ -217,7 +217,7 @@ function _parsePacket(packet, context) {
            context["mqtt.Username"] = packet.username;
            context["mqtt.Password"] = packet.password;
            context["mqtt.Will"] = packet.will;
-              context["iopa.MessageId"] = "connect";
+           context["iopa.MessageId"] = "connect";
            break;
         case "SUBSCRIBE":
            context["iopa.MessageId"] = packet.messageId;
@@ -286,13 +286,12 @@ function _parsePacket(packet, context) {
            response["iopa.Method"] = "CONNACK";
            response["iopa.Body"] = new iopaStream.OutgoingNoPayloadStream();
            response["iopa.StatusCode"] = 0;
-           
            response["mqtt.SessionPresent"] = false;
            break;
         case "SUBSCRIBE":
           response["iopa.Method"] = "SUBACK";
           response["iopa.Body"] = new iopaStream.OutgoingMultiSendStream();
-          response["mqtt.Granted"] = [0, 1, 2, 128];
+          response["mqtt.Granted"] = [];
           break;
         case "UNSUBSCRIBE":
            response["iopa.Method"] = "UNSUBACK";
@@ -396,7 +395,7 @@ function _onClose(ctx) {
    if (ctx["server.InProcess"])
      ctx["iopa.CallCancelledSource"].cancel('Client Socket Disconnected');
    
- // ctx["mqtt.ParentContext"]["server.RawComplete"]();
+ // ctx["server.ChannelContext"]["server.RawComplete"]();
 };
 
 var returnEnum =
