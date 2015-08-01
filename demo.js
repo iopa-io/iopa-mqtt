@@ -51,30 +51,29 @@ if (!process.env.PORT)
   process.env.PORT = 1883;
 
 var context;
-var client;
- server.listen(process.env.PORT, process.env.IP)
-   .then(function(){
-      server.log.info("Server is on port " + server.port );
-      return server.connect("mqtt://127.0.0.1");
-   })
-   .then(function(cl){
-     client = cl;
-      server.log.info("Client is on port " + client["server.LocalPort"]);
-      return client.connect("HELLO", false);
-      return context.send();
-   })
-    .then(function(response){
-         server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-         return client.subscribe("/projector", function(context){
-             console.log("/projector RESPONSE " + context["iopa.Body"].toString());
-             });
-          })
-       .then(function(response){
-         server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-         server.publish("/projector", new Buffer("Hello World"));
-      })
-       .then(function(response){
-       //  server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-      //   server.close().then(function(){server.log.info("MQTT DEMO Closed");});
-      });
-      
+var mqttClient;
+server.listen(process.env.PORT, process.env.IP)
+  .then(function(){
+    server.log.info("Server is on port " + server.port );
+    return server.connect("mqtt://127.0.0.1");
+  })
+  .then(function(cl){
+    mqttClient = cl;
+    server.log.info("Client is on port " + mqttClient["server.LocalPort"]);
+    return mqttClient.connect("CLIENTID-1", false);
+  })
+  .then(function(response){
+       server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
+       return mqttClient.subscribe("/projector", function(context){
+           console.log("/projector RESPONSE " + context["iopa.Body"].toString());
+           });
+        })
+  .then(function(response){
+       server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
+       server.publish("/projector", new Buffer("Hello World"));
+    })
+  .then(function(response){
+     //  server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
+    //   server.close().then(function(){server.log.info("MQTT DEMO Closed");});
+    });
+    

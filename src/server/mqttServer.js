@@ -133,6 +133,8 @@ MQTTServer.prototype._clientMessagePipelineSetup = function (clientMessageApp) {
  * @public
  */
 MQTTServer.prototype._listen = function mqttServer_listen(port, address) {
+  
+  
    return this._tcp.listen(port, address);
 };
 

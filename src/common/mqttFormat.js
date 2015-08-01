@@ -270,8 +270,7 @@ function _parsePacket(packet, context) {
            break;     
      }
      
-        context['iopa.ReasonPhrase'] = returnEnum[context["iopa.StatusCode"]];
-  
+    context['iopa.ReasonPhrase'] = returnEnum[context["iopa.StatusCode"]];
      
     // SETUP RESPONSE DEFAULTS
     var response = context.response;
@@ -307,12 +306,11 @@ function _parsePacket(packet, context) {
            break;
         case "DISCONNECT":
             response["iopa.Method"] = null;
-            response["iopa.Body"] = {};
+            response["iopa.Body"] = undefined;
         break;
      }
      response['iopa.ReasonPhrase'] = returnEnum[response["iopa.StatusCode"]];
-       
-     
+           
     if (response["iopa.Body"])
     {
       response["iopa.Body"].on("finish", _mqttSendResponse.bind(this, context));

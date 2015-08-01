@@ -43,6 +43,7 @@ MQTTSessionClient.prototype.invoke = function MQTTSessionManager_invoke(channelC
     channelContext["iopa.Events"].on("response", this._client_invokeOnParentResponse.bind(this, channelContext));
     channelContext.connect = this.connect.bind(this, channelContext);
     channelContext.subscribe = this.subscribe.bind(this, channelContext);
+    channelContext.disconnect = this.disconnect.bind(this, channelContext);
     return next();
 };
 
@@ -132,12 +133,16 @@ MQTTSessionClient.prototype.subscribe = function MQTTSessionManager_subscribe(ch
 };
 
 MQTTSessionClient.prototype.disconnect = function MQTTSessionClient_disconnect(channelContext) {
+      context = channelContext["server.createRequest"]("/", "DISCONNECT");
+      context.send()      
+      channelContext["server.RawStream"].end();
+      channelContext.log.info("[MQTT-SESSION-CLIENT] DISCONNECT ");    
       channelContext["iopa.Events"].removeListener("disconnect", channelContext["mqttSessionClient._DisconnectListener"]);
       delete channelContext["mqttSessionClient._DisconnectListener"];
   
       var session = channelContext["mqtt.Session"];
       var client =  session["mqtt.ClientID"]; 
-         
+      
       if (session["mqtt.Clean"])
       {
         if (client in db_Clients)

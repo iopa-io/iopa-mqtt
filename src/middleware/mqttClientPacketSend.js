@@ -26,13 +26,14 @@ var Promise = require('bluebird')
  * @method invoke
  * @param context IOPA context dictionary
  */
-module.exports = function MQTTClientPacketSend(context) {   
+module.exports = function MQTTClientPacketSend(context) {      
     try {
         // send the request
         MqttFormat.sendRequest(context);
     }
     catch (err) {
-        context["server.Logger"].error("[MQTTCLIENTPACKETSEND] Unable to send MQTT packet: " + err);
+        context["server.Logger"].error("[MQTTCLIENTPACKETSEND] Unable to send MQTT packet " 
+            + context["iopa.Method"] + ": " + err);
         context =null;
         return Promise.reject('Unable to parse IOPA Message into MQTT packet');
     }

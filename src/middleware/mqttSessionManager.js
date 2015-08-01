@@ -109,6 +109,7 @@ MQTTSessionManager.prototype.invoke = function MQTTSessionManager_invoke(context
           break;
        case "DISCONNECT":
            channelContext["iopa.Events"].emit("disconnect");
+           // TO DO: SHOULD SOCKET DISCONNECT IF CLIENT HAS NOT DONE SO
            break;
        case "UNSUBSCRIBE":
            session = channelContext["mqtt.Session"];
@@ -137,17 +138,21 @@ MQTTSessionManager.prototype.invoke = function MQTTSessionManager_invoke(context
  
               });
          break;
+         default:
+         console.log("UNKNOWN METHOD");
+         throw("Unknown Method");
     }
    
     return next();
 };
 
 MQTTSessionManager.prototype.disconnect = function MQTTSessionManager_disconnect(channelContext) {
+      context.log.info("[MQTT-SESSION-MANAGER] DISCONNECT ");
       channelContext["iopa.Events"].removeListener("disconnect", channelContext["mqttSessionManager._DisconnectListener"]);
       delete channelContext["mqttSessionManager._DisconnectListener"];
   
-         var session = channelContext["mqtt.Session"];
-          var client =  session["mqtt.ClientID"]; 
+      var session = channelContext["mqtt.Session"];
+      var client =  session["mqtt.ClientID"]; 
          
       if (session["mqtt.Clean"])
       {
@@ -174,10 +179,7 @@ MQTTSessionManager.prototype.disconnect = function MQTTSessionManager_disconnect
                 delete session["mqtt.Subscriptions"][topic];
     
               });
-          } else {
-          // silently ignore
-         }
-  
+          }   
           // Remove all channelContext Subscriptions (for this client only)
          session["mqtt.Subscriptions"] = {};
       };

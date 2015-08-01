@@ -23,9 +23,11 @@ const iopa = require('iopa')
     
 var should = require('should');
 
+var numberConnections = 0;
+
 describe('#MQTT Server()', function() {
   
-  var server, client;
+  var server, mqttClient;
   var events = new Events.EventEmitter();
   
   before(function(done){
@@ -58,38 +60,69 @@ describe('#MQTT Server()', function() {
    it('should connect via TCP', function (done) {
      server.connect("mqtt://127.0.0.1")
        .then(function (cl) {
-         client = cl;
-         client["server.RemotePort"].should.equal(1883);
+         mqttClient = cl;
+         mqttClient["server.RemotePort"].should.equal(1883);
          done();
        });
    });
     
     it('should connect via MQTT', function(done) {
-        var context = client["server.createRequest"]("/", "CONNECT");
-        context.send().then(function(response){
-           server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-           response["iopa.Method"].should.equal('CONNACK');
+        mqttClient.connect("CLIENTID-1", false).then(function(response){
+           numberConnections ++;
+            response["iopa.Method"].should.equal('CONNACK');
            events.emit("CLIENT-CONNACK");
            done();
            });
     });
     
-    it('should subscribe via MQTT', function(done) {
-         var context = client["server.createRequest"]("/projector", "SUBSCRIBE");
-         context.send().then(function(response){
-           server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-           response["iopa.Method"].should.equal('SUBACK');
+    it('should publish / subscribe via MQTT', function(done) {
+         mqttClient.subscribe("/projector", function(publet){
+         if (numberConnections == 1)
+         {
+           console.log("/projector RESPONSE " + publet["iopa.Body"].toString());
+           publet["iopa.Body"].toString().should.equal('Hello World');
            done();
-         });
+         }
+           else
+             events.emit("CLIENT-PUB", publet);
+           }).then(function(response){
+              response["iopa.Method"].should.equal('SUBACK');
+              server.publish("/projector", new Buffer("Hello World"));
+           });
     });
     
-    it('should publish items via MQTT', function(done) {
-         var context = client["server.createRequest"]("/projector", "SUBSCRIBE");
-         context.send().then(function(response){
-           server.log.info("MQTT DEMO Response " + response["iopa.Method"]);
-           response["iopa.Method"].should.equal('SUBACK');
+    it('should disconnect client', function(done) {
+        mqttClient.disconnect();
+        done();
+    });
+    
+    it('should restablish connectionion via MQTT', function(done) {
+        events.on("CLIENT-PUB", function(publet){
+           console.log("/projector RESPONSE2 " + publet["iopa.Body"].toString());
+           publet["iopa.Body"].toString().should.equal('Hello World 2');
            done();
          });
+         
+       server.connect("mqtt://127.0.0.1")
+       .then(function (cl) {
+         mqttClient = cl;
+         mqttClient["server.RemotePort"].should.equal(1883);
+        return  mqttClient.connect("CLIENTID-1", false)})
+         .then(function(response){
+          numberConnections ++;
+            response["iopa.Method"].should.equal('CONNACK');
+            events.emit("CLIENT-CONNACK");
+             })
+          .then(function(){
+             return mqttClient.subscribe("/projector", function(publet){
+             console.log("/projector RESPONSE " + publet["iopa.Body"].toString());
+             publet["iopa.Body"].toString().should.equal('Hello World 2');
+             })
+           })
+          .then(function(response){
+              response["iopa.Method"].should.equal('SUBACK');
+              server.publish("/projector", new Buffer("Hello World 2"));
+             });
     });
     
     it('should close', function(done) {

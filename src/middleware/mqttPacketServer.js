@@ -42,12 +42,16 @@ function MQTTPacketServer(app) {
  */
 MQTTPacketServer.prototype.invoke = function MQTTPacketServer(channelContext, next) {
     channelContext["iopa.Scheme"] = "mqtt";
+    
+    channelContext["iopa.Events"].on("disconnect", function(){
+        channelContext["mqttPacketServer.SessionClose"]();
+   });
  
     MqttFormat.inboundParseMonitor(channelContext, "request");
     
     return next().then(function(){ return new Promise(function(resolve, reject){
-           channelContext["mqttPacketServer.Close"] = resolve;
-           channelContext["mqttPacketServer.Error"] = reject;
+           channelContext["mqttPacketServer.SessionClose"] = resolve;
+           channelContext["mqttPacketServer.SessionError"] = reject;
         }); 
     });
 };
