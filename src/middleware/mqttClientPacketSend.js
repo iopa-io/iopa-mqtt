@@ -45,6 +45,7 @@ module.exports = function MQTTClientPacketSend(context) {
 };
 
 function MQTTClientPacket_Response(context, done, response) {
+    console.log("MQTT CLIENT RESPONSE " + response["iopa.Method"]);
     switch (response["iopa.Method"]) {
     case 'PUBLISH':
          break;

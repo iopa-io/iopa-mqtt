@@ -55,7 +55,6 @@ MQTTSessionClient.prototype.invoke = function MQTTSessionManager_invoke(channelC
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTSessionClient.prototype._client_invokeOnParentResponse = function MQTTSessionClient_client_invokeOnParentResponse(channelContext, context) {
-    
    var session = channelContext["mqtt.Session"];  
    
    if (context["iopa.Method"] === "PUBLISH")
