@@ -197,7 +197,7 @@ MQTTSessionManager.prototype.publish = function MQTTSessionManager_publish(topic
         db_Subscriptions[topic].forEach(function(client){
             var session = db_Clients[client];
             var channelContext = session["server.ChannelContext"];
-            var context = channelContext["server.createRequest"](topic, "PUBLISH");
+            var context = channelContext["server.CreateRequest"](topic, "PUBLISH");
             // ignore PUBACK Responses so no promises here
             context["iopa.Body"].end(payload);
         });

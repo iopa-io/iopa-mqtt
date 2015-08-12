@@ -35,7 +35,7 @@ function MQTTMessageCreateDefaults(app) {
  }
 
 MQTTMessageCreateDefaults.prototype.invoke = function MQTTMessageCreateDefaults_invoke(context, next){
-     context["server.createRequest"] = MQTTMessageCreateDefaults_createRequest.bind(this, context["server.createRequest"]);
+     context["server.CreateRequest"] = MQTTMessageCreateDefaults_createRequest.bind(this, context["server.CreateRequest"]);
      return next();
 };
 

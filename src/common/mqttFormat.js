@@ -109,7 +109,7 @@ module.exports.inboundParseMonitor = function ResponseParser(parentContext, even
         context["server.Logger"] = parentContext["server.Logger"];
         
         context["server.ChannelContext"] = parentContext;
-        context["server.createRequest"] = parentContext["server.createRequest"];
+        context["server.CreateRequest"] = parentContext["server.CreateRequest"];
         _parsePacket(packet, context);
       
         parentContext["iopa.Events"].emit(eventType, context);

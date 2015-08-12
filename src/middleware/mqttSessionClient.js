@@ -90,7 +90,7 @@ MQTTSessionClient.prototype.connect = function MQTTSessionManager_connect(channe
           session["mqtt.PendingMessages"] = [];
        }
            
-    var context = channelContext["server.createRequest"]("/", "CONNECT"); 
+    var context = channelContext["server.CreateRequest"]("/", "CONNECT"); 
     context["mqtt.Clean"] = clean;
     context["mqtt.ClientID"] = client;
     
@@ -127,12 +127,12 @@ MQTTSessionClient.prototype.subscribe = function MQTTSessionManager_subscribe(ch
     else
         session["mqtt.Subscriptions"][topic] = [callback];
   
-    var context = channelContext["server.createRequest"](topic, "SUBSCRIBE");
+    var context = channelContext["server.CreateRequest"](topic, "SUBSCRIBE");
     return context.send();
 };
 
 MQTTSessionClient.prototype.disconnect = function MQTTSessionClient_disconnect(channelContext) {
-      context = channelContext["server.createRequest"]("/", "DISCONNECT");
+      context = channelContext["server.CreateRequest"]("/", "DISCONNECT");
       context.send()      
       channelContext["server.RawStream"].end();
       channelContext.log.info("[MQTT-SESSION-CLIENT] DISCONNECT ");    
