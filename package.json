@@ -20,8 +20,7 @@
     "iopa-server": "*",
     "iopa-common-middleware": "*",
     "iopa-common-stream": "*",
-    "iopa-tcp": "*",
-    "mqtt-packet": "~3.2.0"
+    "iopa-mqtt-packet": "*"
   },
   "keywords": [
     "limerun",

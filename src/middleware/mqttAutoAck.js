@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-var MqttFormat = require('../common/mqttFormat.js')
-    , iopaStream = require('iopa-common-stream');
+var iopaStream = require('iopa-common-stream');
     
 /**
  * MQTT IOPA Middleware for Auto Acknowledging Server Requests
@@ -33,13 +32,23 @@ function MQTTAutoAck(app) {
    app.properties["server.Capabilities"]["MQTTAutoAck.Version"] = "1.0";
 }
 
+
 /**
  * @method invoke
  * @this context IOPA context dictionary
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
-    if (["CONNACK", "PUBACK", "PINGRESP"].indexOf(context.response["iopa.Method"]) >=0)
+    
+    if(context["server.IsLocalOrigin"])
+    {
+         context["iopa.Events"].on("response", this._invokeOnParentResponse.bind(this, context)); 
+        return next();
+    } 
+   
+   // SERVER
+    
+    if (["CONNACK", "PINGRESP"].indexOf(context.response["iopa.Method"]) >=0)
     {  
        context["server.RawStream"] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response["server.RawStream"]));  
             context["MQTTAutoAck._acknowledgeTimer"] = setTimeout(function() {
@@ -58,6 +67,20 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
     }
    
     return next();
+};
+
+/**
+ * @method _invokeOnParentResponse
+ * @this CacheMatch
+ * @param channelContext IOPA parent context dictionary
+ * @param context IOPA childResponse context dictionary
+ * @param next   IOPA application delegate for the remainder of the pipeline
+ */
+MQTTAutoAck.prototype._invokeOnParentResponse = function MQTTAutoAck_invokeOnParentResponse(channelContext, context) {
+    if (["PUBACK"].indexOf(context.response["iopa.Method"]) >=0)
+    {  
+        context.response["iopa.Body"].end();
+    }
 };
 
 /**

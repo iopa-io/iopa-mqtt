@@ -13,7 +13,7 @@ It servers MQTT messages in standard IOPA format and allows existing middleware 
 
 It is an open-source, standards-based, lighter-weight replacement for MQTT clients and brokers such as [`mqtt.js`](https://github.com/mqttjs/MQTT.js) [`mosca`](https://github.com/mcollina/mosca) and [`aedes`](https://github.com/mcollina/aedes). 
 
-It uses the widely used library ['mqtt-packet'](https://github.com/mqttjs/mqtt-packet) for protocol formatting.
+It uses the standards based ['iopa-mqtt-packet'](https://github.com/iopa-source/iopa-mqtt-packet) for protocol formatting, which in turn is based on the widely used library ['mqtt-packet'](https://github.com/mqttjs/mqtt-packet) for protocol formatting.
 
 Written in plain javascript for maximum portability to constrained devices
 

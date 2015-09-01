@@ -19,21 +19,13 @@ const util = require('util')
     , Promise = require('bluebird');
 
 const iopa = require('iopa')
-    , TcpServer = require('iopa-tcp')
-    , IopaServer = require('iopa-server')
-    
-const MQTTServerChannelParser = require('../middleware/mqttServerChannelParser.js')
-    , MQTTClientChannelParser = require('../middleware/mqttClientChannelParser.js')
-    , MQTTMessageCreateDefaults = require('../middleware/mqttMessageCreateDefaults.js')
-    , MQTTClientPacketSend = require('../middleware/mqttClientPacketSend.js')
+     , MQTT = require('iopa-mqtt-packet')
+     , IopaServer = require('iopa-server')
     
 const MQTTAutoAck = require('../middleware/mqttAutoAck.js')
     , MQTTSessionManager = require('../middleware/mqttSessionManager.js')
     , MQTTSessionClient = require('../middleware/mqttSessionClient.js')
     
-const iopaClientSend = require('iopa-common-middleware').ClientSend
-    , iopaMessageCache = require('iopa-common-middleware').Cache;
-
 const iopaMessageLogger = require('iopa-common-middleware').MessageLogger
 
 
@@ -66,7 +58,7 @@ function MQTTServer(options, appFunc) {
    IopaServer.call(this, options, appFunc);
         
    // INIT TCP SERVER
-  this._tcp = new TcpServer(options, this.serverPipeline, this.clientPipeline);
+  this._mqtt = MQTT.createServer(options, this._serverRequestPipeline, this.clientPipeline);
 }
 
 util.inherits(MQTTServer, IopaServer);
@@ -77,8 +69,6 @@ util.inherits(MQTTServer, IopaServer);
  * @InheritDoc
  */
 MQTTServer.prototype._serverChannelPipelineSetup = function (serverChannelApp) {
-   serverChannelApp.use(MQTTMessageCreateDefaults);
-  serverChannelApp.use(MQTTServerChannelParser);
 };
 
 /**
@@ -90,7 +80,6 @@ MQTTServer.prototype._serverMessagePipelineSetup = function (app) {
     app.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
       "mqtt.Version": "3.1.1"
       };
-    app.use(MQTTMessageCreateDefaults);
     app.use(iopaMessageLogger);
     app.use(MQTTSessionManager);
     app.use(MQTTAutoAck);
@@ -101,11 +90,13 @@ MQTTServer.prototype._serverMessagePipelineSetup = function (app) {
  * @InheritDoc
  */
 MQTTServer.prototype._clientConnectPipelineSetup = function (clientConnectApp) {
-  clientConnectApp.use(MQTTMessageCreateDefaults);
-  clientConnectApp.use(MQTTClientChannelParser);
-  clientConnectApp.use(iopaClientSend);
-  clientConnectApp.use(iopaMessageCache.Match);
-  clientConnectApp.use(MQTTSessionClient);
+    clientConnectApp.properties["server.Capabilities"]["iopa-mqtt.Version"] = "1.2";
+    clientConnectApp.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
+      "mqtt.Version": "3.1.1"
+      };
+  
+   clientConnectApp.use(MQTTSessionClient);
+     clientConnectApp.use(MQTTAutoAck);
 };
 
 /**
@@ -117,9 +108,7 @@ MQTTServer.prototype._clientMessageSendPipelineSetup = function (clientMessageAp
   clientMessageApp.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
     "mqtt.Version": "3.1.1"
   };
-  clientMessageApp.properties["app.DefaultApp"] = MQTTClientPacketSend;
-  clientMessageApp.use(iopaMessageCache.Cache);
-   clientMessageApp.use(iopaMessageLogger);
+  clientMessageApp.use(iopaMessageLogger);
 };
 
 // OVERRIDE METHODS
@@ -135,13 +124,11 @@ MQTTServer.prototype._clientMessageSendPipelineSetup = function (clientMessageAp
  * @public
  */
 MQTTServer.prototype._listen = function mqttServer_listen(port, address) {
-  
-  
-   return this._tcp.listen(port, address);
+    return this._mqtt.listen(port, address);
 };
 
-Object.defineProperty(MQTTServer.prototype, "port", { get: function () { return this._tcp.port; } });
-Object.defineProperty(MQTTServer.prototype, "address", { get: function () { return this._tcp.address; } });
+Object.defineProperty(MQTTServer.prototype, "port", { get: function () { return this._mqtt.port; } });
+Object.defineProperty(MQTTServer.prototype, "address", { get: function () { return this._mqtt.address; } });
 
 /**
  * mqtt.connect() Create MQTT Session over TCP Channel to given Host and Port
@@ -153,7 +140,7 @@ Object.defineProperty(MQTTServer.prototype, "address", { get: function () { retu
  * @public
  */
 MQTTServer.prototype._connect = function mqttServer_connect(urlStr) {
-  return this._tcp.connect(urlStr);
+  return this._mqtt.connect(urlStr);
 };
 
 /**
@@ -165,7 +152,7 @@ MQTTServer.prototype._connect = function mqttServer_connect(urlStr) {
  * @public
  */
 MQTTServer.prototype._close = function mqttServer_close() {
-  return this._tcp.close();
+  return this._mqtt.close();
 };
 
 module.exports = MQTTServer;

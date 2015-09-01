@@ -138,8 +138,10 @@ MQTTSessionManager.prototype.invoke = function MQTTSessionManager_invoke(context
  
               });
          break;
+          case "PUBACK":
+            break;
          default:
-         console.log("UNKNOWN METHOD");
+            console.log("UNKNOWN METHOD" + context["iopa.Method"]);
          throw("Unknown Method");
     }
    

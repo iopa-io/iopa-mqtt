@@ -133,11 +133,9 @@ MQTTSessionClient.prototype.subscribe = function MQTTSessionManager_subscribe(ch
 
 MQTTSessionClient.prototype.disconnect = function MQTTSessionClient_disconnect(channelContext) {
       context = channelContext["server.CreateRequest"]("/", "DISCONNECT");
-      context.send()      
-      channelContext["server.RawStream"].end();
-      channelContext.log.info("[MQTT-SESSION-CLIENT] DISCONNECT ");    
+      context.send()  
       channelContext["iopa.Events"].removeListener("disconnect", channelContext["mqttSessionClient._DisconnectListener"]);
-      delete channelContext["mqttSessionClient._DisconnectListener"];
+        delete channelContext["mqttSessionClient._DisconnectListener"];
   
       var session = channelContext["mqtt.Session"];
       var client =  session["mqtt.ClientID"]; 
@@ -153,6 +151,9 @@ MQTTSessionClient.prototype.disconnect = function MQTTSessionClient_disconnect(c
   
           session["mqtt.Subscriptions"] = {};
       };
+      
+      setTimeout(function(){ channelContext["server.RawStream"].end(); }, 500);
+  
 }
 
 module.exports = MQTTSessionClient;
