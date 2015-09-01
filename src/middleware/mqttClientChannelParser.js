@@ -22,21 +22,21 @@ var Promise = require('bluebird')
   /**
  * MQTT IOPA Middleware for Client Connection Defaults
  *
- * @class MQTTAutoAck
+ * @class MQTTClientChannelParser
  * @this app.properties  the IOPA AppBuilder Properties Dictionary, used to add server.capabilities
  * @constructor
  * @public
  */
-function MQTTClientChannel(app) {
+function MQTTClientChannelParser(app) {
     if (!app.properties["server.Capabilities"]["iopa-mqtt.Version"])
         throw ("Missing Dependency: MQTT Server/Middleware in Pipeline");
 
-   app.properties["server.Capabilities"]["MQTTClientChannel.Version"] = "1.0";
+   app.properties["server.Capabilities"]["MQTTClientChannelParser.Version"] = "1.0";
 }
 
-MQTTClientChannel.prototype.invoke = function MQTTClientChannel_invoke(channelContext, next){
+MQTTClientChannelParser.prototype.invoke = function MQTTClientChannelParser_invoke(channelContext, next){
      MqttFormat.inboundParseMonitor(channelContext, "response");
      return next();
 };
 
-module.exports = MQTTClientChannel;
+module.exports = MQTTClientChannelParser;

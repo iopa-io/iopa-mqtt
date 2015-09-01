@@ -20,7 +20,7 @@
 /**
  * MQTT IOPA Middleware for Managing Server Sessions including Auto Subscribing Client Subscribe Requests
  *
- * @class MQTTAutoSubscribe
+ * @class MQTTSessionClient
  * @this app.properties  the IOPA AppBuilder Properties Dictionary, used to add server.capabilities
  * @constructor
  * @public

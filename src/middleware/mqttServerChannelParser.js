@@ -24,11 +24,11 @@ var util = require('util')
 /**
  * IOPA Middleware: Translates IOPA Stream Connections to IOPA Multi-Packet Connection 
  *
- * @class MQTTPacketServer
+ * @class MQTTServerChannelParser
  * @this app.properties  the IOPA AppBuilder Properties Dictionary
  * @constructor
  */
-function MQTTPacketServer(app) {
+function MQTTServerChannelParser(app) {
     app.properties["server.Capabilities"]["iopa-mqtt.Version"] = "1.2";
     app.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
         "mqtt.Version": "3.1.1"
@@ -40,20 +40,20 @@ function MQTTPacketServer(app) {
  * @this context IOPA channelContext dictionary
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
-MQTTPacketServer.prototype.invoke = function MQTTPacketServer(channelContext, next) {
+MQTTServerChannelParser.prototype.invoke = function MQTTServerChannelParser_invoke(channelContext, next) {
     channelContext["iopa.Scheme"] = "mqtt";
     
     channelContext["iopa.Events"].on("disconnect", function(){
-        channelContext["mqttPacketServer.SessionClose"]();
+        channelContext["MQTTServerChannelParser.SessionClose"]();
    });
  
     MqttFormat.inboundParseMonitor(channelContext, "request");
     
     return next().then(function(){ return new Promise(function(resolve, reject){
-           channelContext["mqttPacketServer.SessionClose"] = resolve;
-           channelContext["mqttPacketServer.SessionError"] = reject;
+           channelContext["MQTTServerChannelParser.SessionClose"] = resolve;
+           channelContext["MQTTServerChannelParser.SessionError"] = reject;
         }); 
     });
 };
 
-module.exports = MQTTPacketServer;
+module.exports = MQTTServerChannelParser;

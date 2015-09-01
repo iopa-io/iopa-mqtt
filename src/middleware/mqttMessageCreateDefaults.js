@@ -22,7 +22,7 @@ var Promise = require('bluebird')
   /**
  * MQTT IOPA Middleware for Client Connection Defaults
  *
- * @class MQTTAutoAck
+ * @class MQTTMessageCreateDefaults
  * @this app.properties  the IOPA AppBuilder Properties Dictionary, used to add server.capabilities
  * @constructor
  * @public
@@ -35,20 +35,20 @@ function MQTTMessageCreateDefaults(app) {
  }
 
 MQTTMessageCreateDefaults.prototype.invoke = function MQTTMessageCreateDefaults_invoke(context, next){
-     context["server.CreateRequest"] = MQTTMessageCreateDefaults_createRequest.bind(this, context["server.CreateRequest"]);
+     context["server.CreateRequest"] = MQTTMessageCreateDefaults_createRequest.bind(this, context["iopa.Seq"], context["server.CreateRequest"]);
      return next();
 };
 
  /**
  * MQTT IOPA Middleware for Client Message Request Defaults
  *
- * @method MQTTClientChannel_createRequest
+ * @method MQTTMessageCreateDefaults_createRequest
  * @parm {string} path url representation of ://127.0.0.1/hello
  * @parm {string} [method]  request method (e.g. 'GET')
  * @returns context
  * @public
  */
-function MQTTMessageCreateDefaults_createRequest(nextFactory, urlStr, method){
+function MQTTMessageCreateDefaults_createRequest(id, nextFactory, urlStr, method){
     var context = nextFactory(urlStr, method);
       MqttFormat.defaultContext(context);
      return context;

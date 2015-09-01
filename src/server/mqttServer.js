@@ -15,25 +15,27 @@
  * limitations under the License.
  */
  
-var util = require('util');
-var Promise = require('bluebird');
+const util = require('util')
+    , Promise = require('bluebird');
 
-var iopa = require('iopa');
-var TcpServer = require('iopa-tcp');
-var IopaServer = require('iopa-server');
-var MqttFormat = require('../common/mqttFormat.js');
+const iopa = require('iopa')
+    , TcpServer = require('iopa-tcp')
+    , IopaServer = require('iopa-server')
+    
+const MQTTServerChannelParser = require('../middleware/mqttServerChannelParser.js')
+    , MQTTClientChannelParser = require('../middleware/mqttClientChannelParser.js')
+    , MQTTMessageCreateDefaults = require('../middleware/mqttMessageCreateDefaults.js')
+    , MQTTClientPacketSend = require('../middleware/mqttClientPacketSend.js')
+    
+const MQTTAutoAck = require('../middleware/mqttAutoAck.js')
+    , MQTTSessionManager = require('../middleware/mqttSessionManager.js')
+    , MQTTSessionClient = require('../middleware/mqttSessionClient.js')
+    
+const iopaClientSend = require('iopa-common-middleware').ClientSend
+    , iopaMessageCache = require('iopa-common-middleware').Cache;
 
-var MQTTPacketServer = require('../middleware/mqttPacketServer.js');
-var MQTTClientChannel = require('../middleware/mqttClientChannel.js');
-var MQTTMessageCreateDefaults = require('../middleware/mqttMessageCreateDefaults.js');
-var MQTTClientPacketSend = require('../middleware/mqttClientPacketSend.js');
-var MQTTAutoAck = require('../middleware/mqttAutoAck.js');
-var MQTTSessionManager = require('../middleware/mqttSessionManager.js');
-var MQTTSessionClient = require('../middleware/mqttSessionClient.js');
-var iopaAuditLog = require('iopa-common-middleware').AuditLog;
-var BackForth = require('iopa-common-middleware').BackForth;
-var ClientSend = require('iopa-common-middleware').ClientSend;
-var iopaCacheMatch = require('iopa-common-middleware').Cache;
+const iopaMessageLogger = require('iopa-common-middleware').MessageLogger
+
 
 /* *********************************************************
  * IOPA MQTT SERVER / CLIENT WITH MIDDLEWARE CONSTRUCTED
@@ -75,20 +77,21 @@ util.inherits(MQTTServer, IopaServer);
  * @InheritDoc
  */
 MQTTServer.prototype._serverChannelPipelineSetup = function (serverChannelApp) {
-  serverChannelApp.use(MQTTPacketServer);
+   serverChannelApp.use(MQTTMessageCreateDefaults);
+  serverChannelApp.use(MQTTServerChannelParser);
 };
 
 /**
  * SERVER MESSAGE PIPELINE SETUP
  * @InheritDoc
  */
-MQTTServer.prototype._serverRequestPipelineSetup = function (app) {
+MQTTServer.prototype._serverMessagePipelineSetup = function (app) {
     app.properties["server.Capabilities"]["iopa-mqtt.Version"] = "1.2";
     app.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
       "mqtt.Version": "3.1.1"
       };
-    app.use(iopaAuditLog);
     app.use(MQTTMessageCreateDefaults);
+    app.use(iopaMessageLogger);
     app.use(MQTTSessionManager);
     app.use(MQTTAutoAck);
 };
@@ -97,27 +100,26 @@ MQTTServer.prototype._serverRequestPipelineSetup = function (app) {
  * CLIENT CHANNEL PIPELINE SETUP
  * @InheritDoc
  */
-MQTTServer.prototype._clientChannelPipelineSetup = function (clientChannelApp) {
-  clientChannelApp.use(MQTTMessageCreateDefaults);
-  clientChannelApp.use(MQTTClientChannel);
- // clientChannelApp.use(BackForth);
-  clientChannelApp.use(ClientSend);
-  clientChannelApp.use(iopaCacheMatch.Match);
-  clientChannelApp.use(MQTTSessionClient);
+MQTTServer.prototype._clientConnectPipelineSetup = function (clientConnectApp) {
+  clientConnectApp.use(MQTTMessageCreateDefaults);
+  clientConnectApp.use(MQTTClientChannelParser);
+  clientConnectApp.use(iopaClientSend);
+  clientConnectApp.use(iopaMessageCache.Match);
+  clientConnectApp.use(MQTTSessionClient);
 };
 
 /**
  * CLIENT MESSAGE PIPELINE SETUP
  * @InheritDoc
  */
-MQTTServer.prototype._clientMessagePipelineSetup = function (clientMessageApp) {
+MQTTServer.prototype._clientMessageSendPipelineSetup = function (clientMessageApp) {
   clientMessageApp.properties["server.Capabilities"]["iopa-mqtt.Version"] = "1.2";
   clientMessageApp.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
     "mqtt.Version": "3.1.1"
   };
   clientMessageApp.properties["app.DefaultApp"] = MQTTClientPacketSend;
-  clientMessageApp.use(iopaCacheMatch.Cache);
-  clientMessageApp.use(iopaAuditLog);
+  clientMessageApp.use(iopaMessageCache.Cache);
+   clientMessageApp.use(iopaMessageLogger);
 };
 
 // OVERRIDE METHODS

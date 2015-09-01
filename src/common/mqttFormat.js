@@ -33,6 +33,10 @@ var _lastMessageId = Math.floor(Math.random() * (maxMessageId - 1));
  * @private
  */
 module.exports.sendRequest = function mqttFormat_SendRequest(context) {
+
+       if (!context["iopa.MessageId"])
+        context["iopa.MessageId"] = _nextMessageId();
+     
        var  packet = {
               cmd: context["iopa.Method"].toLowerCase()
             };
@@ -158,7 +162,7 @@ module.exports.defaultContext = function MQTTPacketClient_defaultContext(context
       break; 
     case "PUBLISH":
        context["iopa.MessageId"] = _nextMessageId();
-       context["mqtt.Qos"] = 0;
+       context["mqtt.Qos"] = 2;
        context["mqtt.Dup"] = false;
        context["mqtt.Retain"] = false;
        break; 
@@ -329,6 +333,10 @@ function _parsePacket(packet, context) {
  */
 function _mqttSendResponse(context, payload) { 
     var response = context.response;
+     
+        if (!response["iopa.MessageId"])
+          response["iopa.MessageId"] = _nextMessageId();
+    
      var  packet = { cmd: response["iopa.Method"].toLowerCase() };
    
      switch (response["iopa.Method"]) {
