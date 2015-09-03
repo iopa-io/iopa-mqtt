@@ -28,7 +28,6 @@ const MQTTAutoAck = require('../middleware/mqttAutoAck.js')
     
 const iopaMessageLogger = require('iopa-common-middleware').MessageLogger
 
-
 /* *********************************************************
  * IOPA MQTT SERVER / CLIENT WITH MIDDLEWARE CONSTRUCTED
  * ********************************************************* */
