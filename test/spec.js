@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
-  *
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +15,6 @@
  */
  
 const iopa = require('iopa')
-    , Promise = require('bluebird')
     , util = require('util')
     , Events = require('events')
     , mqtt = require('../index.js');
@@ -34,7 +32,7 @@ describe('#MQTT Server()', function() {
      var app = new iopa.App();
       
       app.use(function(context, next){
-         context.log.info("MQTT DEMO " + context["iopa.Method"]); 
+         context.log.info("[TEST] APP USE " + context["iopa.Method"]); 
          events.emit("data", context);  
          return next();
           });
@@ -57,29 +55,22 @@ describe('#MQTT Server()', function() {
     });
     
          
-   it('should connect via TCP', function (done) {
-     server.connect("mqtt://127.0.0.1")
+   it('should connect via MQTT', function (done) {
+     server.connect("mqtt://127.0.0.1", "CLIENTID-1", false)
        .then(function (cl) {
          mqttClient = cl;
          mqttClient["server.RemotePort"].should.equal(1883);
-         done();
+          numberConnections ++;
+          events.emit("CLIENT-CONNACK");
+          setTimeout(done, 50);
        });
    });
-    
-    it('should connect via MQTT', function(done) {
-        mqttClient.connect("CLIENTID-1", false).then(function(response){
-           numberConnections ++;
-            response["iopa.Method"].should.equal('CONNACK');
-           events.emit("CLIENT-CONNACK");
-           done();
-           });
-    });
-    
+     
     it('should publish / subscribe via MQTT', function(done) {
          mqttClient.subscribe("/projector", function(publet){
          if (numberConnections == 1)
          {
-           console.log("/projector RESPONSE " + publet["iopa.Body"].toString());
+           console.log("[TEST] /projector RESPONSE " + publet["iopa.Body"].toString());
            publet["iopa.Body"].toString().should.equal('Hello World');
            done();
          }
@@ -98,7 +89,7 @@ describe('#MQTT Server()', function() {
     
     it('should restablish connectionion via MQTT', function(done) {
         events.on("CLIENT-PUB", function(publet){
-           console.log("/projector RESPONSE2 " + publet["iopa.Body"].toString());
+           console.log("[TEST] /projector RESPONSE2 " + publet["iopa.Body"].toString());
            publet["iopa.Body"].toString().should.equal('Hello World 2');
            done();
          });
@@ -107,7 +98,7 @@ describe('#MQTT Server()', function() {
        .then(function (cl) {
          mqttClient = cl;
          mqttClient["server.RemotePort"].should.equal(1883);
-        return  mqttClient.connect("CLIENTID-1", false)})
+        return  mqttClient.connectMQTT("CLIENTID-1", false)})
          .then(function(response){
           numberConnections ++;
             response["iopa.Method"].should.equal('CONNACK');
@@ -115,7 +106,7 @@ describe('#MQTT Server()', function() {
              })
           .then(function(){
              return mqttClient.subscribe("/projector", function(publet){
-             console.log("/projector RESPONSE " + publet["iopa.Body"].toString());
+             console.log("[TEST] /projector RESPONSE3 " + publet["iopa.Body"].toString());
              publet["iopa.Body"].toString().should.equal('Hello World 2');
              })
            })

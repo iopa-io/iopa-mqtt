@@ -1,8 +1,9 @@
 {
   "name": "iopa-mqtt",
   "main": "lib/index.js",
-  "description": "Lightweight Message Queuing Telemetry Transport (MQTT) protocol server, based on Internet of Protocols Association (IOPA) open standard",
-  "author": "IOPA",
+  "description": "Lightweight Message Queuing Telemetry Transport (MQTT) protocol server, based on Internet of Protocols Alliance (IOPA) open standard",
+  "author": "iopa <build@iopa.io>",
+  "license": "Apache-2.0",
   "maintainers": [
     {
       "name": "iopa",
@@ -12,15 +13,14 @@
   "version": "0.2.17",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iopa-source/iopa-mqtt.git"
+    "url": "https://github.com/iopa-io/iopa-mqtt.git"
   },
   "dependencies": {
-    "bluebird": "*",
-    "iopa": "*",
-    "iopa-server": "*",
-    "iopa-common-middleware": "*",
-    "iopa-common-stream": "*",
-    "iopa-mqtt-packet": "*"
+    "iopa": "latest",
+    "iopa-server": "latest",
+    "iopa-common-middleware": "latest",
+    "iopa-common-stream": "latest",
+    "iopa-mqtt-packet": "latest"
   },
   "keywords": [
     "limerun",
@@ -36,21 +36,17 @@
     "promise",
     "framework"
   ],
-  "licenses": [
-    {
-      "type": "Apache-2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
-  ],
-  "engines": {
-    "node": ">= 0.12.0"
+   "engines": {
+    "node": ">= 4.0"
   },
   "scripts": {
-    "test": "mocha --reporter spec test"
-  },
+    "test": "mocha --reporter spec test",
+    "quick": "git add . -A && git commit -m 'dev test' && npm version patch && npm publish",
+    "typings": "tsd reinstall --overwrite --clean --config tools/tsd.json && tsd link"
+   },
   "devDependencies": {
-    "mocha": "^2.2.5",
-    "mocha-junit-reporter": "^1.6.1",
-    "should": "^7.0.2"
+    "mocha": "latest",
+    "mocha-junit-reporter": "latest",
+    "should": "latest"
   }
 }

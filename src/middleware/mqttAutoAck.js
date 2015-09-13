@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +15,11 @@
  */
 
 var iopaStream = require('iopa-common-stream');
+
+const constants = require('iopa').constants,
+    IOPA = constants.IOPA,
+    SERVER = constants.SERVER,
+    MQTT = constants.MQTT
     
 /**
  * MQTT IOPA Middleware for Auto Acknowledging Server Requests
@@ -26,10 +30,10 @@ var iopaStream = require('iopa-common-stream');
  * @public
  */
 function MQTTAutoAck(app) {
-    if (!app.properties["server.Capabilities"]["iopa-mqtt.Version"])
+    if (!app.properties[SERVER.Capabilities]["iopa-mqtt.Version"])
         throw ("Missing Dependency: MQTT Server/Middleware in Pipeline");
 
-   app.properties["server.Capabilities"]["MQTTAutoAck.Version"] = "1.0";
+   app.properties[SERVER.Capabilities]["MQTTAutoAck.Version"] = "1.0";
 }
 
 
@@ -40,28 +44,28 @@ function MQTTAutoAck(app) {
  */
 MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
     
-    if(context["server.IsLocalOrigin"])
+    if(context[SERVER.IsLocalOrigin])
     {
-         context["iopa.Events"].on("response", this._invokeOnParentResponse.bind(this, context)); 
+         context[IOPA.Events].on(IOPA.EVENTS.Response, this._invokeOnParentResponse.bind(this, context)); 
         return next();
     } 
    
    // SERVER
     
-    if (["CONNACK", "PINGRESP"].indexOf(context.response["iopa.Method"]) >=0)
+    if ([MQTT.METHODS.CONNACK, MQTT.METHODS.PINGRESP].indexOf(context.response[IOPA.Method]) >=0)
     {  
-       context["server.RawStream"] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response["server.RawStream"]));  
+       context[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
             context["MQTTAutoAck._acknowledgeTimer"] = setTimeout(function() {
-                context.response["iopa.Body"].end();
+                context.response[IOPA.Body].end();
                 context["MQTTAutoAck._acknowledgeTimer"] = null;
             }, 50);
     }
     
-     if (["SUBACK"].indexOf(context.response["iopa.Method"]) >=0)
+     if ([MQTT.METHODS.SUBACK].indexOf(context.response[IOPA.Method]) >=0)
     {  
-       context.response["server.RawStream"] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response["server.RawStream"]));  
+       context.response[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
             context["MQTTAutoAck._acknowledgeTimer"] = setTimeout(function() {
-                context.response["iopa.Body"].write("");
+                context.response[IOPA.Body].write("");
                 context["MQTTAutoAck._acknowledgeTimer"] = null;
                 }, 50);
     }
@@ -77,9 +81,11 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTAutoAck.prototype._invokeOnParentResponse = function MQTTAutoAck_invokeOnParentResponse(channelContext, context) {
-    if (["PUBACK"].indexOf(context.response["iopa.Method"]) >=0)
+    if ([MQTT.METHODS.PUBACK].indexOf(context.response[IOPA.Method]) >=0)
     {  
-        context.response["iopa.Body"].end();
+        setTimeout(function() {
+          context.response[IOPA.Body].end();
+        }, 50);
     }
 };
 

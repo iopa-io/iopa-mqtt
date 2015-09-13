@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +14,12 @@
  * limitations under the License.
  */
 
- var db_Clients = {};
- 
+var db_Clients = {};
+const constants = require('iopa').constants,
+  IOPA = constants.IOPA,
+  SERVER = constants.SERVER,
+  MQTT = constants.MQTT
+    
 /**
  * MQTT IOPA Middleware for Managing Server Sessions including Auto Subscribing Client Subscribe Requests
  *
@@ -26,12 +29,49 @@
  * @public
  */
 function MQTTSessionClient(app) {
-    if (!app.properties["server.Capabilities"]["iopa-mqtt.Version"])
-        throw ("Missing Dependency: MQTT Server/Middleware in Pipeline");
+  if (!app.properties[SERVER.Capabilities]["iopa-mqtt.Version"])
+    throw ("Missing Dependency: MQTT Server/Middleware in Pipeline");
 
-   app.properties["server.Capabilities"]["MQTTSessionClient.Version"] = "1.0";
-   this.app = app;
-  }
+  app.properties[SERVER.Capabilities]["MQTTSessionClient.Version"] = "1.0";
+  this.app = app;
+  
+  this.server = app.server;
+  this.server.connect = this._connect.bind(this, this.server.connect);
+}
+
+
+/**
+ * @method connect
+ * @this MQTTSessionClient IOPA context dictionary
+ *  @param nextConnect bound to next server.connect in chain 
+ * @param string clientid  
+ * @param bool clean   use clean (persistent) session
+ */
+MQTTSessionClient.prototype._connect = function MQTTSessionManager_connect(nextConnect, urlStr, clientid, clean){
+   var client; 
+  return nextConnect(urlStr).then(function(cl){
+    if (cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTT && cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTT)
+      return cl;
+      
+      client = cl;
+  
+      return client.connectMQTT(clientid, clean).then(function(response){
+          if (response["iopa.Method"] !== 'CONNACK')
+            throw new Error("MQTT server did not respond with CONNACK");
+          return client;
+      });
+  });
+}
+
+/**
+ * @method connect
+ * @this MQTTSessionClient IOPA context dictionary
+ *  @param nextDisconnect bound to next client.disconnect in chain 
+ * @param channelContext client  
+ */
+MQTTSessionClient.prototype._disconnect = function MQTTSessionManager_disconnect(nextDisconnect, channelContext){
+  return channelContext.fetch("/", MQTT.METHODS.DISCONNECT, function(){}).then(nextDisconnect);
+}
 
 /**
  * @method invoke
@@ -40,11 +80,11 @@ function MQTTSessionClient(app) {
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTSessionClient.prototype.invoke = function MQTTSessionManager_invoke(channelContext, next) {
-    channelContext["iopa.Events"].on("response", this._client_invokeOnParentResponse.bind(this, channelContext));
-    channelContext.connect = this.connect.bind(this, channelContext);
-    channelContext.subscribe = this.subscribe.bind(this, channelContext);
-    channelContext.disconnect = this.disconnect.bind(this, channelContext);
-    return next();
+  channelContext[IOPA.Events].on(IOPA.EVENTS.Response, this._client_invokeOnParentResponse.bind(this, channelContext));
+  channelContext.connectMQTT = this.connectMQTT.bind(this, channelContext);
+  channelContext.subscribe = this.subscribeMQTT.bind(this, channelContext);
+  channelContext.disconnect = this._disconnect.bind(this, channelContext.disconnect, channelContext);
+  return next();
 };
 
 /**
@@ -55,20 +95,18 @@ MQTTSessionClient.prototype.invoke = function MQTTSessionManager_invoke(channelC
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTSessionClient.prototype._client_invokeOnParentResponse = function MQTTSessionClient_client_invokeOnParentResponse(channelContext, context) {
-   var session = channelContext["mqtt.Session"];  
-   
-   if (context["iopa.Method"] === "PUBLISH")
-    {
-        var topic = context["iopa.Path"];
-         
-        if (topic in session["mqtt.Subscriptions"])
-        {
-             (session["mqtt.Subscriptions"][topic]).forEach(function(callback){
-                 callback(context);
-             });
-        };
-    }
-    
+  var session = channelContext["MQTTSessionClient.Session"];
+
+  if (context[IOPA.Method] === MQTT.METHODS.PUBLISH) {
+    var topic = context[IOPA.Path];
+
+    if (topic in session[MQTT.Subscriptions]) {
+      (session[MQTT.Subscriptions][topic]).forEach(function (callback) {
+        callback(context);
+      });
+    };
+  }
+
 };
 
 /**
@@ -77,39 +115,32 @@ MQTTSessionClient.prototype._client_invokeOnParentResponse = function MQTTSessio
  * @param string clientid  
  * @param bool clean   use clean (persistent) session
  */
-MQTTSessionClient.prototype.connect = function MQTTSessionManager_connect(channelContext, client, clean) {
-    var session;
-        
-    if (!clean && (client in db_Clients)) 
-       {
-          session =  db_Clients[client];
-       } else
-       {
-          session = {}
-          session["mqtt.Subscriptions"] = {};
-          session["mqtt.PendingMessages"] = [];
-       }
-           
-    var context = channelContext["server.CreateRequest"]("/", "CONNECT"); 
-    context["mqtt.Clean"] = clean;
-    context["mqtt.ClientID"] = client;
+MQTTSessionClient.prototype.connectMQTT = function MQTTSessionManager_connectMQTT(channelContext, client, clean) {
+  var session;
+
+  if (!clean && (client in db_Clients)) {
+    session = db_Clients[client];
+  } else {
+    session = {}
+    session[MQTT.Subscriptions] = {};
+    session["MQTTSessionClient.PendingMessages"] = [];
+  }
+
+  session[MQTT.ClientId] = client;
+  session[MQTT.Clean] = clean;
+  session[SERVER.ParentContext] = channelContext;
+  db_Clients[client] = session;
     
-    session["mqtt.ClientID"] = client;
-    session["mqtt.Clean"] = clean;
+  channelContext["MQTTSessionClient.Session"] = session;
+  channelContext[IOPA.Events].once(IOPA.EVENTS.Disconnect, this.disconnectMQTT.bind(this, channelContext));
+
+  var defaults = {};
+  defaults[IOPA.Method] = MQTT.METHODS.CONNECT;
+  defaults[MQTT.Clean] = clean;
+  defaults[MQTT.ClientId] = client;
   
-    session["mqtt.ProtocolId"] = context["mqtt.ProtocolId"];
-    session["mqtt.ProtocolVersion"] = context["mqtt.ProtocolVersion"];
-    session["mqtt.Keepalive"] = context["mqtt.Keepalive"];
-    session["mqtt.Username"] = context["mqtt.Username"];
-    session["mqtt.Will"] = context["mqtt.Will"];
-    
-    session["server.ChannelContext"] = channelContext;
-    channelContext["mqtt.Session"] = session;
-    db_Clients[client] = session;
-    channelContext["mqttSessionClient._DisconnectListener"] = this.disconnect.bind(this, channelContext);
-    channelContext["iopa.Events"].on("disconnect", channelContext["mqttSessionClient._DisconnectListener"]);
-        
-    return context.send();
+  return channelContext.send("/", defaults); 
+  
 };
 
 /**
@@ -118,29 +149,24 @@ MQTTSessionClient.prototype.connect = function MQTTSessionManager_connect(channe
  * @param string topic   IOPA Path of  MQTT topic
  * @param appFunc callback  callback to for published responses
  */
-MQTTSessionClient.prototype.subscribe = function MQTTSessionManager_subscribe(channelContext, topic, callback) {
-     var session = channelContext["mqtt.Session"];  
+MQTTSessionClient.prototype.subscribeMQTT = function MQTTSessionManager_subscribe(channelContext, topic, callback) {
+     var session = channelContext["MQTTSessionClient.Session"];  
      
     // Add to session subscriptions
-    if (topic in session["mqtt.Subscriptions"])
-        session["mqtt.Subscriptions"][topic].push(callback)
+    if (topic in session[MQTT.Subscriptions])
+        session[MQTT.Subscriptions][topic].push(callback)
     else
-        session["mqtt.Subscriptions"][topic] = [callback];
+        session[MQTT.Subscriptions][topic] = [callback];
   
-    var context = channelContext["server.CreateRequest"](topic, "SUBSCRIBE");
-    return context.send();
+    return channelContext.send(topic, MQTT.METHODS.SUBSCRIBE);
 };
 
-MQTTSessionClient.prototype.disconnect = function MQTTSessionClient_disconnect(channelContext) {
-      context = channelContext["server.CreateRequest"]("/", "DISCONNECT");
-      context.send()  
-      channelContext["iopa.Events"].removeListener("disconnect", channelContext["mqttSessionClient._DisconnectListener"]);
-        delete channelContext["mqttSessionClient._DisconnectListener"];
-  
-      var session = channelContext["mqtt.Session"];
-      var client =  session["mqtt.ClientID"]; 
-      
-      if (session["mqtt.Clean"])
+MQTTSessionClient.prototype.disconnectMQTT = function MQTTSessionClient_disconnect(channelContext) {
+     
+     var session = channelContext["MQTTSessionClient.Session"];
+      var client =  session[MQTT.ClientId]; 
+ 
+      if (session[MQTT.Clean])
       {
         if (client in db_Clients)
            {
@@ -149,10 +175,9 @@ MQTTSessionClient.prototype.disconnect = function MQTTSessionClient_disconnect(c
           // silently ignore
          }
   
-          session["mqtt.Subscriptions"] = {};
+          session[MQTT.Subscriptions] = {};
       };
-      
-      setTimeout(function(){ channelContext["server.RawStream"].end(); }, 500);
+
   
 }
 

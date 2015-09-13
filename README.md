@@ -1,19 +1,19 @@
 # [![IOPA](http://iopa.io/iopa.png)](http://iopa.io)<br> iopa-mqtt
 
-[![Build Status](https://api.shippable.com/projects/55986ca7edd7f2c05258f2e7/badge?branchName=master)](https://app.shippable.com/projects/55986ca7edd7f2c05258f2e7) 
+[![Build Status](https://api.shippable.com/projects/TBD/badge?branchName=master)](https://app.shippable.com/projects/TBD) 
 [![IOPA](https://img.shields.io/badge/iopa-middleware-99cc33.svg?style=flat-square)](http://iopa.io)
 [![limerun](https://img.shields.io/badge/limerun-certified-3399cc.svg?style=flat-square)](https://nodei.co/npm/limerun/)
 
 [![NPM](https://nodei.co/npm/iopa-mqtt.png?downloads=true)](https://nodei.co/npm/iopa-mqtt/)
 
 ## About
-`iopa-mqtt` is a lightweight OASIS Message Queuing Telemetry Transport (MQTT) protocol server, based on the Internet of Protocols Association (IOPA) open standard  
+`iopa-mqtt` is a full-stack OASIS Message Queuing Telemetry Transport (MQTT) protocol server, based on the Internet of Protocols Alliance (IOPA) open specification  
 
 It servers MQTT messages in standard IOPA format and allows existing middleware for Connect, Express and limerun projects to consume/send each mesage.
 
 It is an open-source, standards-based, lighter-weight replacement for MQTT clients and brokers such as [`mqtt.js`](https://github.com/mqttjs/MQTT.js) [`mosca`](https://github.com/mcollina/mosca) and [`aedes`](https://github.com/mcollina/aedes). 
 
-It uses the standards based ['iopa-mqtt-packet'](https://github.com/iopa-source/iopa-mqtt-packet) for protocol formatting, which in turn is based on the widely used library ['mqtt-packet'](https://github.com/mqttjs/mqtt-packet) for protocol formatting.
+It uses the standards based ['iopa-mqtt-packet'](https://github.com/iopa-io/iopa-mqtt-packet) for protocol formatting, which in turn is based on the widely used library ['mqtt-packet'](https://github.com/mqttjs/mqtt-packet) for protocol formatting.
 
 Written in plain javascript for maximum portability to constrained devices
 
@@ -50,60 +50,53 @@ Includes:
 ``` js
 const iopa = require('iopa')
     , mqtt = require('iopa-mqtt')      
-
+ 
 var app = new iopa.App();
+app.use(iopaMessageLogger);
 
 app.use(function(context, next){
-   context.response.end('Hello World from ' + context["iopa.Path"]);
+   if (context["iopa.Method"] === "SUBSCRIBE")
+   {
+     setTimeout(function() {
+            server.publish("/projector", new Buffer("Hello World"));
+            }, 1000);
+   }
+
    return next();
     });
+              
+var server = mqtt.createServer(app.build());
 
-var server = mqtt.createServer(serverOptions, app.build());
+if (!process.env.PORT)
+  process.env.PORT = 1883;
 
-server.listen(mqtt.constants.mqttPort).then(function(){
-   var context = server.clientCreateRequest('mqtt://127.0.0.1/device', "CONNECT");
-   context.response.pipe(process.stdout);
-   context["iopa.Events"].on("response", function() {
-   context.response["iopa.Body"].on('end', function() {
-       process.exit(0)
+var context;
+var mqttClient;
+server.listen(process.env.PORT, process.env.IP)
+  .then(function(){
+    server.log.info("[DEMO] Server is on port " + server.port );
+    return server.connect("mqtt://127.0.0.1", "CLIENTID-1", false);
+  })
+  .then(function(cl){
+    mqttClient = cl;
+    server.log.info("[DEMO] Client is on port " + mqttClient["server.LocalPort"]);
+    return mqttClient.subscribe("/projector", function(pubsub){
+             server.log.info("[DEMO] MQTT PUBSUB Response " + pubsub["iopa.Method"] + " " + pubsub["iopa.Body"].toString());
+       })
+  })
+  .then(function(response){
+       server.log.info("[DEMO] MQTT Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
+       server.publish("/projector", new Buffer("Hello World 2"));
+    })
+  .then(function(){
+    setTimeout(function(){
+       server.close().then(function(){server.log.info("[DEMO] MQTT DEMO Closed");});
+    }, 2000);
     });
-  });
-  
-  context.end();
+    
 
  });
 
-``` 
-
-### Multicast and UniCast Server Client Example
-``` js
-const iopa = require('iopa')
-    , mqtt = require('iopa-mqtt')      
-    , Promise = require('bluebird')
-
-var app = new iopa.App();
-app.use(function(context, next){
-  context.response["iopa.Body"].end('Hello World from ' + context["iopa.Path"]);
-   return next();
-    });
-    
-var serverOptions = {
-    "server.LocalPortMulticast" : MQTT.constants.mqttMulticastIPV4
-  , "server.LocalPortReuse" : true
-  , "server.IsGlobalClient" : false
-}
-
-var server = mqtt.createServer(serverOptions, app.build());
-
-Promise.join( server.listen(process.env.PORT, process.env.IP)).then(function(){
-   server.log.info("Server is on port " + server.port );
-  
-   server.clientCreateRequest('mqtt://127.0.0.1:' + server.port + '/projector', "GET")
-   .then(function(context) {
-    context.response["iopa.Body"].pipe(process.stdout);
-    context["iopa.Body"].end("CONNECT");
-   });
-});
 ``` 
   
 ## Roadmap
