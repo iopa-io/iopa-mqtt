@@ -50,7 +50,7 @@ function MQTTSessionClient(app) {
 MQTTSessionClient.prototype._connect = function MQTTSessionManager_connect(nextConnect, urlStr, clientid, clean){
    var client; 
   return nextConnect(urlStr).then(function(cl){
-    if (cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTT && cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTT)
+    if (cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTT && cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTTS)
       return cl;
       
       client = cl;
