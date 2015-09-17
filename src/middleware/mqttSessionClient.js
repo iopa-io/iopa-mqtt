@@ -44,7 +44,7 @@ function MQTTSessionClient(app) {
   app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
   app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
   
-  //Also register as standard IOPA PUB/SUB PUBLISH MIDDLEWARE
+  //Also register as standard IOPA PUB/SUB SUBSCRIBE MIDDLEWARE
   app.properties[SERVER.Capabilities][IOPA.CAPABILITIES.Subscribe] = {};
   app.properties[SERVER.Capabilities][IOPA.CAPABILITIES.Subscribe][SERVER.Version] = app.properties[SERVER.Capabilities][IOPA.CAPABILITIES.App][SERVER.Version];
   
