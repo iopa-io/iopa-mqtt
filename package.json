@@ -1,7 +1,7 @@
 {
   "name": "iopa-mqtt",
   "main": "lib/index.js",
-  "description": "Lightweight Message Queuing Telemetry Transport (MQTT) protocol server, based on Internet of Protocols Alliance (IOPA) specification",
+  "description": "API-first, full-stack, OASIS Message Queuing Telemetry Transport (MQTT) protocol server for the Internet of Things (IoT), based on the Internet of Protocols Alliance (IOPA) specification",
   "author": "iopa <build@iopa.io>",
   "license": "Apache-2.0",
   "maintainers": [

@@ -92,10 +92,10 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
 MQTTAutoAck.prototype._invokeOnParentResponse = function MQTTAutoAck_invokeOnParentResponse(channelContext, context) {
     if ([MQTT.METHODS.PUBACK].indexOf(context.response[IOPA.Method]) >=0)
     {  
-        setTimeout(function() {
+        process.nextTick(function() {
           context.response[IOPA.Body].end();
           context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.DONE]();
-        }, 50);
+        });
     }
 };
 
