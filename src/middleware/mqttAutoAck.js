@@ -21,6 +21,10 @@ const constants = require('iopa').constants,
     SERVER = constants.SERVER,
     MQTT = constants.MQTT
     
+ const THISMIDDLEWARE = {CAPABILITY: "urn:io.iopa:mqtt:autoack", TIMER: "autoack.Timer", DONE: "autoack.Done"},
+      MQTTMIDDLEWARE = {CAPABILITY: "urn:io.iopa:mqtt"},
+     packageVersion = require('../../package.json').version;
+   
 /**
  * MQTT IOPA Middleware for Auto Acknowledging Server Requests
  *
@@ -30,12 +34,12 @@ const constants = require('iopa').constants,
  * @public
  */
 function MQTTAutoAck(app) {
-    if (!app.properties[SERVER.Capabilities]["iopa-mqtt.Version"])
-        throw ("Missing Dependency: MQTT Server/Middleware in Pipeline");
-
-   app.properties[SERVER.Capabilities]["MQTTAutoAck.Version"] = "1.0";
+   if (!app.properties[SERVER.Capabilities][MQTTMIDDLEWARE.CAPABILITY])
+        throw ("Missing Dependency: IOPA MQTT Server/Middleware in Pipeline");
+     
+    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
 }
-
 
 /**
  * @method invoke
@@ -43,6 +47,11 @@ function MQTTAutoAck(app) {
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
+    
+      var p = new Promise(function(resolve, reject){
+        context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.DONE] = resolve;
+    }); 
+ 
     
     if(context[SERVER.IsLocalOrigin])
     {
@@ -55,22 +64,22 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
     if ([MQTT.METHODS.CONNACK, MQTT.METHODS.PINGRESP].indexOf(context.response[IOPA.Method]) >=0)
     {  
        context[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
-            context["MQTTAutoAck._acknowledgeTimer"] = setTimeout(function() {
+            context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = setTimeout(function() {
                 context.response[IOPA.Body].end();
-                context["MQTTAutoAck._acknowledgeTimer"] = null;
+                context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = null;
             }, 50);
     }
     
      if ([MQTT.METHODS.SUBACK].indexOf(context.response[IOPA.Method]) >=0)
     {  
        context.response[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
-            context["MQTTAutoAck._acknowledgeTimer"] = setTimeout(function() {
+            context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = setTimeout(function() {
                 context.response[IOPA.Body].write("");
-                context["MQTTAutoAck._acknowledgeTimer"] = null;
+                context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = null;
                 }, 50);
     }
    
-    return next();
+   return next().then(function(){ return p });
 };
 
 /**
@@ -85,6 +94,7 @@ MQTTAutoAck.prototype._invokeOnParentResponse = function MQTTAutoAck_invokeOnPar
     {  
         setTimeout(function() {
           context.response[IOPA.Body].end();
+          context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.DONE]();
         }, 50);
     }
 };
@@ -99,9 +109,11 @@ MQTTAutoAck.prototype._invokeOnParentResponse = function MQTTAutoAck_invokeOnPar
  * @private
 */
 MQTTAutoAck.prototype._write = function MQTTAutoAck_write(context, nextStream, chunk, encoding, callback) {
-    if (context["MQTTAutoAck._acknowledgeTimer"])
+    if (context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER])
     {
-        clearTimeout(context["MQTTAutoAck._acknowledgeTimer"]);
+        clearTimeout(context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER]);
+        context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = null;
+         context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.DONE]();
     }
  
     nextStream.write(chunk, encoding, callback);

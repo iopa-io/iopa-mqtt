@@ -24,10 +24,13 @@ const MQTTAutoAck = require('../middleware/mqttAutoAck.js')
     , MQTTSessionManager = require('../middleware/mqttSessionManager.js')
     , MQTTSessionClient = require('../middleware/mqttSessionClient.js')
     
-    const constants = require('iopa').constants,
+const constants = require('iopa').constants,
     IOPA = constants.IOPA,
     SERVER = constants.SERVER,
     MQTT = constants.MQTT
+    
+const MQTTMIDDLEWARE = {CAPABILITY: "urn:io.iopa:mqtt", PROTOCOLVERSION: "OASIS 3.1.1"},
+    packageVersion = require('../../package.json').version;
     
 /* *********************************************************
  * IOPA MQTT SERVER / CLIENT WITH MIDDLEWARE CONSTRUCTED
@@ -64,7 +67,10 @@ util.inherits(MQTTServer, IopaServer);
  * SERVER CHANNEL PIPELINE SETUP
  * @InheritDoc
  */
-MQTTServer.prototype._serverChannelPipelineSetup = function (serverChannelApp) {
+MQTTServer.prototype._serverChannelPipelineSetup = function (app) {
+    app.properties[SERVER.Capabilities][MQTTMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][MQTTMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
+    app.properties[SERVER.Capabilities][MQTTMIDDLEWARE.CAPABILITY][IOPA.Protocol] = MQTTMIDDLEWARE.PROTOCOLVERSION;
 };
 
 /**
@@ -72,10 +78,6 @@ MQTTServer.prototype._serverChannelPipelineSetup = function (serverChannelApp) {
  * @InheritDoc
  */
 MQTTServer.prototype._serverMessagePipelineSetup = function (app) {
-    app.properties["server.Capabilities"]["iopa-mqtt.Version"] = "1.2";
-    app.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
-      "mqtt.Version": "3.1.1"
-      };
     app.use(MQTTSessionManager);
     app.use(MQTTAutoAck);
 };
@@ -85,11 +87,6 @@ MQTTServer.prototype._serverMessagePipelineSetup = function (app) {
  * @InheritDoc
  */
 MQTTServer.prototype._clientConnectPipelineSetup = function (clientConnectApp) {
-    clientConnectApp.properties[SERVER.Capabilities]["iopa-mqtt.Version"] = "1.2";
-    clientConnectApp.properties[SERVER.Capabilities]["iopa-mqtt.Support"] = {
-      "mqtt.Version": "3.1.1"
-      };
-  
    clientConnectApp.use(MQTTSessionClient);
    clientConnectApp.use(MQTTAutoAck);
 };
@@ -99,10 +96,7 @@ MQTTServer.prototype._clientConnectPipelineSetup = function (clientConnectApp) {
  * @InheritDoc
  */
 MQTTServer.prototype._clientMessageSendPipelineSetup = function (clientMessageApp) {
-  clientMessageApp.properties["server.Capabilities"]["iopa-mqtt.Version"] = "1.2";
-  clientMessageApp.properties["server.Capabilities"]["iopa-mqtt.Support"] = {
-    "mqtt.Version": "3.1.1"
-  };
+   // intentionally left empty
  };
 
 // OVERRIDE METHODS

@@ -7,13 +7,13 @@
 [![NPM](https://nodei.co/npm/iopa-mqtt.png?downloads=true)](https://nodei.co/npm/iopa-mqtt/)
 
 ## About
-`iopa-mqtt` is a full-stack OASIS Message Queuing Telemetry Transport (MQTT) protocol server, based on the Internet of Protocols Alliance (IOPA) open specification  
+`iopa-mqtt` is an API-first, full-stack, OASIS Message Queuing Telemetry Transport (MQTT) protocol server for the Internet of Things (IoT), based on the Internet of Protocols Alliance (IOPA) specification  
 
 It servers MQTT messages in standard IOPA format and allows existing middleware for Connect, Express and limerun projects to consume/send each mesage.
 
 It is an open-source, standards-based, lighter-weight replacement for MQTT clients and brokers such as [`mqtt.js`](https://github.com/mqttjs/MQTT.js) [`mosca`](https://github.com/mcollina/mosca) and [`aedes`](https://github.com/mcollina/aedes). 
 
-It uses the standards based ['iopa-mqtt-packet'](https://github.com/iopa-io/iopa-mqtt-packet) for protocol formatting, which in turn is based on the widely used library ['mqtt-packet'](https://github.com/mqttjs/mqtt-packet) for protocol formatting.
+It uses the API-first ['iopa-mqtt-packet'](https://github.com/iopa-io/iopa-mqtt-packet) for protocol formatting, which in turn is based on the widely used library ['mqtt-packet'](https://github.com/mqttjs/mqtt-packet) for protocol formatting.
 
 Written in plain javascript for maximum portability to constrained devices
 
@@ -52,7 +52,6 @@ const iopa = require('iopa')
     , mqtt = require('iopa-mqtt')      
  
 var app = new iopa.App();
-app.use(iopaMessageLogger);
 
 app.use(function(context, next){
    if (context["iopa.Method"] === "SUBSCRIBE")

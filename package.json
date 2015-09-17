@@ -10,19 +10,23 @@
       "email": "build@iopa.io"
     }
   ],
-  "version": "0.2.18",
+  "version": "1.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/iopa-io/iopa-mqtt.git"
   },
   "dependencies": {
-    "iopa": "latest",
-    "iopa-server": "latest",
-    "iopa-common-middleware": "latest",
-    "iopa-common-stream": "latest",
-    "iopa-mqtt-packet": "latest"
+    "iopa": "^1.2.0",
+    "iopa-server": "^1.2.0",
+    "iopa-common-middleware": "^1.2.0",
+    "iopa-common-stream": "^1.2.0",
+    "iopa-mqtt-packet": "^1.2.0"
   },
   "keywords": [
+    "iot",
+    "iotivity",
+    "IOC",
+    "IOPA",
     "limerun",
     "iopa",
     "owin",
@@ -45,8 +49,9 @@
     "typings": "tsd reinstall --overwrite --clean --config tools/tsd.json && tsd link"
   },
   "devDependencies": {
-    "mocha": "latest",
-    "mocha-junit-reporter": "latest",
-    "should": "latest"
+    "mocha": "^2.3.2",
+    "mocha-junit-reporter": "^1.6.1",
+    "should": "^7.1.0",
+    "iopa-logger": "^1.2.0"
   }
 }

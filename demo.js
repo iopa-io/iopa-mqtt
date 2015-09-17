@@ -19,7 +19,7 @@ const iopa = require('iopa')
     , util = require('util');
     
  
-const iopaMessageLogger = require('iopa-common-middleware').MessageLogger
+const iopaMessageLogger = require('iopa-logger').MessageLogger
 
 var app = new iopa.App();
 app.use(iopaMessageLogger);
@@ -38,7 +38,7 @@ app.use(function(context, next){
     });
       
 var server = mqtt.createServer(app.build());
-server.connectuse(iopaMessageLogger.connect);
+server.connectuse(iopaMessageLogger);
 
 if (!process.env.PORT)
   process.env.PORT = 1883;
