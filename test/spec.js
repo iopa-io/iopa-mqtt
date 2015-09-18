@@ -94,15 +94,12 @@ describe('#MQTT Server()', function() {
            done();
          });
          
-       server.connect("mqtt://127.0.0.1")
+       server.connect("mqtt://127.0.0.1", "CLIENTID-1", false)
        .then(function (cl) {
          mqttClient = cl;
          mqttClient["server.RemotePort"].should.equal(1883);
-        return  mqttClient.connectMQTT("CLIENTID-1", false)})
-         .then(function(response){
           numberConnections ++;
-            response["iopa.Method"].should.equal('CONNACK');
-            events.emit("CLIENT-CONNACK");
+             events.emit("CLIENT-CONNACK");
              })
           .then(function(){
              return mqttClient.subscribe("/projector", function(publet){
