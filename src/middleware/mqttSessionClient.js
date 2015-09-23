@@ -85,7 +85,7 @@ MQTTSessionClient.prototype.connect = function MQTTSessionManager_connect(channe
  * @param channelContext client  
  */
 MQTTSessionClient.prototype._disconnect = function MQTTSessionManager_disconnect(nextDisconnect, channelContext) {
-  return channelContext.fetch("/", MQTT.METHODS.DISCONNECT, function () { }).then(nextDisconnect);
+  return channelContext[SERVER.Fetch]("/", MQTT.METHODS.DISCONNECT, function () { }).then(nextDisconnect);
 }
 
 /**
@@ -136,7 +136,7 @@ function MQTTSessionClient_connect(channelContext) {
   db_Clients[sessionid] = session;
 
   channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION] = session;
-  channelContext[IOPA.CancelToken].onCancelled.then(MQTTSessionClient_disconnect.bind(this, channelContext));
+  channelContext[IOPA.CancelToken].onCancelled(MQTTSessionClient_disconnect.bind(this, channelContext));
 
   var defaults = {};
   defaults[IOPA.Method] = MQTT.METHODS.CONNECT;

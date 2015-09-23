@@ -100,7 +100,7 @@ MQTTSessionManager.prototype.invoke = function MQTTSessionManager_invoke(context
            session[SERVER.ParentContext] = channelContext;
            channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION] = session;
            db_Clients[client] = session;
-           channelContext[IOPA.CancelToken].onCancelled.then(this.disconnectMQTT.bind(this, channelContext));
+           channelContext[IOPA.CancelToken].onCancelled(this.disconnectMQTT.bind(this, channelContext));
            break;
        case MQTT.METHODS.SUBSCRIBE:
           session = channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION];
