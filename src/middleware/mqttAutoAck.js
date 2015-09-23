@@ -51,16 +51,8 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
       var p = new Promise(function(resolve, reject){
         context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.DONE] = resolve;
     }); 
- 
     
-    if(context[SERVER.IsLocalOrigin])
-    {
-         context[IOPA.Events].on(IOPA.EVENTS.Response, this._invokeOnParentResponse.bind(this, context)); 
-        return next();
-    } 
-   
-   // SERVER
-    
+   // SERVER   
     if ([MQTT.METHODS.CONNACK, MQTT.METHODS.PINGRESP].indexOf(context.response[IOPA.Method]) >=0)
     {  
        context[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
@@ -81,6 +73,17 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
    
    return next().then(function(){ return p });
 };
+
+/**
+ * @method dispatch
+ * @param context IOPA context dictionary
+ * @param next   IOPA application delegate for the remainder of the pipeline
+ */
+MQTTAutoAck.prototype.dispatch = function MQTTAutoAck_dispatch(context, next) {
+    context[IOPA.Events].on(IOPA.EVENTS.Response, this._invokeOnParentResponse.bind(this, context)); 
+    return next();
+}
+
 
 /**
  * @method _invokeOnParentResponse

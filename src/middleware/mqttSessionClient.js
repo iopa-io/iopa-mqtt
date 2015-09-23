@@ -50,8 +50,7 @@ function MQTTSessionClient(app) {
   
   this.app = app;
   this.server = app.server;
-  this.server.connect = this._connect.bind(this, this.server.connect);
-}
+ }
 
 /**
  * @method connect
@@ -60,36 +59,24 @@ function MQTTSessionClient(app) {
  * @param string clientid  
  * @param bool clean   use clean (persistent) session
  */
-MQTTSessionClient.prototype._connect = function MQTTSessionManager_connect(nextConnect, urlStr, clientid, clean) {
-  var client;
-  return nextConnect(urlStr).then(function (cl) {
-    if (cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTT && cl[IOPA.Scheme] !== IOPA.SCHEMES.MQTTS)
-      return cl;
-
-    client = cl;
-
-    return client.connectMQTT(clientid, clean).then(function (response) {
+MQTTSessionClient.prototype.connect = function MQTTSessionManager_connect(channelContext, next) {
+    if (channelContext[IOPA.Scheme] !== IOPA.SCHEMES.MQTT && channelContext[IOPA.Scheme] !== IOPA.SCHEMES.MQTTS)
+      return next();
+      
+    channelContext[IOPA.Events].on(IOPA.EVENTS.Response, this._client_invokeOnParentResponse.bind(this, channelContext));
+    channelContext[IOPA.PUBSUB.Subscribe] = this.subscribeMQTT.bind(this, channelContext);
+    channelContext.disconnect = this._disconnect.bind(this, channelContext.disconnect, channelContext);
+ 
+    return next()
+    .then(function(){
+      return MQTTSessionClient_connect.call(this, channelContext)
+    })
+    .then(function (response) {
       if (response[IOPA.Method] !== MQTT.METHODS.CONNACK)
         throw new Error("MQTT server did not respond with CONNACK");
-      return client;
+      return channelContext;
     });
-  });
 }
-
-
-/**
- * @method invoke
- * @this MQTTSessionClient
- * @param channelContext IOPA context dictionary
- * @param next   IOPA application delegate for the remainder of the pipeline
- */
-MQTTSessionClient.prototype.invoke = function MQTTSessionManager_invoke(channelContext, next) {
-  channelContext[IOPA.Events].on(IOPA.EVENTS.Response, this._client_invokeOnParentResponse.bind(this, channelContext));
-  channelContext.connectMQTT = this.connectMQTT.bind(this, channelContext);
-  channelContext.subscribe = this.subscribeMQTT.bind(this, channelContext);
-  channelContext.disconnect = this._disconnect.bind(this, channelContext.disconnect, channelContext);
-  return next();
-};
 
 /**
  * @method connect
@@ -129,29 +116,32 @@ MQTTSessionClient.prototype._client_invokeOnParentResponse = function MQTTSessio
  * @param string clientid  
  * @param bool clean   use clean (persistent) session
  */
-MQTTSessionClient.prototype.connectMQTT = function MQTTSessionManager_connectMQTT(channelContext, client, clean) {
+function MQTTSessionClient_connect(channelContext) {
   var session;
-
-  if (!clean && (client in db_Clients)) {
-    session = db_Clients[client];
+  var sessionid = channelContext[SERVER.SessionId];
+  var clientid = channelContext[SERVER.LocalThing];
+  var clean = channelContext[IOPA.PUBSUB.Clean];
+  
+  if (!clean && (sessionid in db_Clients)) {
+    session = db_Clients[sessionid];
   } else {
     session = {}
     session[MQTT.Subscriptions] = {};
     session[THISMIDDLEWARE.PENDINGMESSAGES] = [];
   }
 
-  session[MQTT.ClientId] = client;
+  session[SERVER.SessionId] = sessionid;
   session[MQTT.Clean] = clean;
   session[SERVER.ParentContext] = channelContext;
-  db_Clients[client] = session;
+  db_Clients[sessionid] = session;
 
   channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION] = session;
-  channelContext[IOPA.Events].once(IOPA.EVENTS.Disconnect, this.disconnectMQTT.bind(this, channelContext));
+  channelContext[IOPA.CancelToken].onCancelled.then(MQTTSessionClient_disconnect.bind(this, channelContext));
 
   var defaults = {};
   defaults[IOPA.Method] = MQTT.METHODS.CONNECT;
   defaults[MQTT.Clean] = clean;
-  defaults[MQTT.ClientId] = client;
+  defaults[MQTT.ClientId] = clientid;
 
   return channelContext.send("/", defaults);
 
@@ -175,22 +165,20 @@ MQTTSessionClient.prototype.subscribeMQTT = function MQTTSessionManager_subscrib
   return channelContext.send(topic, MQTT.METHODS.SUBSCRIBE);
 };
 
-MQTTSessionClient.prototype.disconnectMQTT = function MQTTSessionClient_disconnect(channelContext) {
+function MQTTSessionClient_disconnect(channelContext) {
 
   var session = channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION];
-  var client = session[MQTT.ClientId];
+  var sessionId = session[SERVER.SessionId];
 
   if (session[MQTT.Clean]) {
-    if (client in db_Clients) {
-      delete db_Clients[client];
+    if (sessionId in db_Clients) {
+      delete db_Clients[sessionId];
     } else {
       // silently ignore
     }
 
     session[MQTT.Subscriptions] = {};
   };
-
-
 }
 
 module.exports = MQTTSessionClient;

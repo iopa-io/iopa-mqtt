@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+global.Promise = require('bluebird');
+
 const iopa = require('iopa')
     , util = require('util')
     , Events = require('events')
-    , mqtt = require('../index.js');
-    
+    , mqtt = require('../index.js')
+    , tcp = require('iopa-tcp');
+   const iopaMessageLogger = require('iopa-logger').MessageLogger
+
 var should = require('should');
 
 var numberConnections = 0;
@@ -27,9 +30,13 @@ describe('#MQTT Server()', function() {
   
   var server, mqttClient;
   var events = new Events.EventEmitter();
+  var app;
   
   before(function(done){
-     var app = new iopa.App();
+     app = new iopa.App();
+     app.use(iopaMessageLogger);
+     app.use(mqtt);
+
       
       app.use(function(context, next){
          context.log.info("[TEST] APP USE " + context["iopa.Method"]); 
@@ -37,8 +44,7 @@ describe('#MQTT Server()', function() {
          return next();
           });
           
-      var serverOptions = {};
-      server = mqtt.createServer(serverOptions, app.build());
+      server = tcp.createServer(app.build());
       
       if (!process.env.PORT)
         process.env.PORT = 1883;
@@ -56,7 +62,7 @@ describe('#MQTT Server()', function() {
     
          
    it('should connect via MQTT', function (done) {
-     server.connect("mqtt://127.0.0.1", "CLIENTID-1", false)
+     server.connect("mqtt://127.0.0.1")
        .then(function (cl) {
          mqttClient = cl;
          mqttClient["server.RemotePort"].should.equal(1883);
@@ -67,7 +73,7 @@ describe('#MQTT Server()', function() {
    });
      
     it('should publish / subscribe via MQTT', function(done) {
-         mqttClient.subscribe("/projector", function(publet){
+         mqttClient["pubsub.Subscribe"]("/projector", function(publet){
          if (numberConnections == 1)
          {
            console.log("[TEST] /projector RESPONSE " + publet["iopa.Body"].toString());
@@ -78,7 +84,7 @@ describe('#MQTT Server()', function() {
              events.emit("CLIENT-PUB", publet);
            }).then(function(response){
               response["iopa.Method"].should.equal('SUBACK');
-              server.publish("/projector", new Buffer("Hello World"));
+              app["pubsub.Publish"]("/projector", new Buffer("Hello World"));
            });
     });
     
@@ -88,13 +94,8 @@ describe('#MQTT Server()', function() {
     });
     
     it('should restablish connectionion via MQTT', function(done) {
-        events.on("CLIENT-PUB", function(publet){
-           console.log("[TEST] /projector RESPONSE2 " + publet["iopa.Body"].toString());
-           publet["iopa.Body"].toString().should.equal('Hello World 2');
-           done();
-         });
          
-       server.connect("mqtt://127.0.0.1", "CLIENTID-1", false)
+       server.connect("mqtt://127.0.0.1")
        .then(function (cl) {
          mqttClient = cl;
          mqttClient["server.RemotePort"].should.equal(1883);
@@ -102,20 +103,22 @@ describe('#MQTT Server()', function() {
              events.emit("CLIENT-CONNACK");
              })
           .then(function(){
-             return mqttClient.subscribe("/projector", function(publet){
+             return mqttClient["pubsub.Subscribe"]("/projector", function(publet){
              console.log("[TEST] /projector RESPONSE3 " + publet["iopa.Body"].toString());
              publet["iopa.Body"].toString().should.equal('Hello World 2');
+             done();
              })
            })
           .then(function(response){
               response["iopa.Method"].should.equal('SUBACK');
-              server.publish("/projector", new Buffer("Hello World 2"));
+              app["pubsub.Publish"]("/projector", new Buffer("Hello World 2"));
              });
     });
     
     it('should close', function(done) {
+    
        server.close().then(function(){
-         server.log.info("MQTT DEMO Closed");
+         app.log.info("MQTT DEMO Closed");
          done();});
     });
     

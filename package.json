@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "iopa": "^1.2.0",
-    "iopa-server": "^1.2.0",
     "iopa-common-middleware": "^1.2.0",
     "iopa-common-stream": "^1.2.0",
     "iopa-mqtt-packet": "^1.2.0"
@@ -49,9 +48,11 @@
     "typings": "tsd reinstall --overwrite --clean --config tools/tsd.json && tsd link"
   },
   "devDependencies": {
+    "bluebird": "^2.10.0",
+    "iopa-logger": "^1.2.0",
+    "iopa-tcp": "^1.2.0",
     "mocha": "^2.3.2",
     "mocha-junit-reporter": "^1.6.1",
-    "should": "^7.1.0",
-    "iopa-logger": "^1.2.0"
+    "should": "^7.1.0"
   }
 }

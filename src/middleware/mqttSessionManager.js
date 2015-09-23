@@ -48,10 +48,8 @@ function MQTTSessionManager(app) {
     app.properties[SERVER.Capabilities][IOPA.CAPABILITIES.Publish] = {};
     app.properties[SERVER.Capabilities][IOPA.CAPABILITIES.Publish][SERVER.Version] = app.properties[SERVER.Capabilities][IOPA.CAPABILITIES.App][SERVER.Version];
 
-   this.app = app;
-   this.server = app.server;
-   
-   this.server.publish = this._publish.bind(this, this.server.publish);
+   this.app = app; 
+   app[IOPA.PUBSUB.Publish]  = this._publish.bind(this, app[IOPA.PUBSUB.Publish] || function(){return Promise.resolve(null)});
 }
 
 /**
@@ -102,7 +100,7 @@ MQTTSessionManager.prototype.invoke = function MQTTSessionManager_invoke(context
            session[SERVER.ParentContext] = channelContext;
            channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION] = session;
            db_Clients[client] = session;
-           channelContext[IOPA.Events].once(IOPA.EVENTS.Disconnect, this.disconnectMQTT.bind(this, channelContext));
+           channelContext[IOPA.CancelToken].onCancelled.then(this.disconnectMQTT.bind(this, channelContext));
            break;
        case MQTT.METHODS.SUBSCRIBE:
           session = channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION];
@@ -136,8 +134,7 @@ MQTTSessionManager.prototype.invoke = function MQTTSessionManager_invoke(context
           });
           break;
        case MQTT.METHODS.DISCONNECT:
-           channelContext[IOPA.Events].emit(IOPA.EVENTS.Disconnect);
-           // TO DO: SHOULD SOCKET DISCONNECT IF CLIENT HAS NOT DONE SO
+           channelContext[SERVER.RawStream].end();
            break;
        case MQTT.METHODS.UNSUBSCRIBE:
            session = channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSION];

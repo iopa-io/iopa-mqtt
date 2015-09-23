@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+global.Promise = require('bluebird');
+
 const iopa = require('iopa')
     , mqtt = require('./index.js')      
-    , util = require('util');
+    , util = require('util')
+    , tcp = require('iopa-tcp')
+    , IOPA = iopa.constants.IOPA;
     
- 
 const iopaMessageLogger = require('iopa-logger').MessageLogger
 
 var app = new iopa.App();
 app.use(iopaMessageLogger);
+app.use(mqtt);
 
 app.use(function(context, next){
    context.log.info("[DEMO] MQTT APP USE " + context["iopa.Method"]);
@@ -30,15 +34,14 @@ app.use(function(context, next){
    if (context["iopa.Method"] === "SUBSCRIBE")
    {
      setTimeout(function() {
-            server.publish("/projector", new Buffer("Hello World 2 55555"));
+            app[IOPA.PUBSUB.Publish]("/projector", new Buffer("Hello World 2 55555"));
             }, 1000);
    }
 
    return next();
     });
       
-var server = mqtt.createServer(app.build());
-server.connectuse(iopaMessageLogger);
+var server = tcp.createServer(app.build());
 
 if (!process.env.PORT)
   process.env.PORT = 1883;
@@ -47,23 +50,23 @@ var context;
 var mqttClient;
 server.listen(process.env.PORT, process.env.IP)
   .then(function(){
-    server.log.info("[DEMO] Server is on port " + server.port );
+    app.log.info("[DEMO] Server is on port " + server.port );
     return server.connect("mqtt://127.0.0.1", "CLIENTID-1", false);
   })
   .then(function(cl){
     mqttClient = cl;
-    server.log.info("[DEMO] Client is on port " + mqttClient["server.LocalPort"]);
-    return mqttClient.subscribe("/projector", function(pubsub){
-             server.log.info("[DEMO] MQTT PUBSUB Response " + pubsub["iopa.Method"] + " " + pubsub["iopa.Body"].toString());
+    app.log.info("[DEMO] Client is on port " + mqttClient["server.LocalPort"]);
+    return mqttClient[IOPA.PUBSUB.Subscribe]("/projector", function(pubsub){
+             app.log.info("[DEMO] MQTT PUBSUB Response " + pubsub["iopa.Method"] + " " + pubsub["iopa.Body"].toString());
        })
   })
   .then(function(response){
-       server.log.info("[DEMO] MQTT Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
-       server.publish("/projector", new Buffer("Hello World"));
+       app.log.info("[DEMO] MQTT Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
+       app[IOPA.PUBSUB.Publish]("/projector", new Buffer("Hello World"));
     })
   .then(function(){
     setTimeout(function(){
-       server.close().then(function(){server.log.info("[DEMO] MQTT DEMO Closed");});
+       server.close().then(function(){app.log.info("[DEMO] MQTT DEMO Closed");});
     }, 2000);
     });
     
