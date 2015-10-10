@@ -85,7 +85,8 @@ MQTTSessionClient.prototype.connect = function MQTTSessionManager_connect(channe
  * @param channelContext client  
  */
 MQTTSessionClient.prototype._disconnect = function MQTTSessionManager_disconnect(nextDisconnect, channelContext) {
-  return channelContext[SERVER.Fetch]("/", MQTT.METHODS.DISCONNECT, function () { }).then(nextDisconnect);
+  return channelContext.create("/", MQTT.METHODS.DISCONNECT).dispatch(true);
+  nextDisconnect();
 }
 
 /**
@@ -143,7 +144,7 @@ function MQTTSessionClient_connect(channelContext) {
   defaults[MQTT.Clean] = clean;
   defaults[MQTT.ClientId] = clientid;
 
-  return channelContext.send("/", defaults);
+  return channelContext.create("/", defaults).send();
 
 };
 
@@ -162,7 +163,7 @@ MQTTSessionClient.prototype.subscribeMQTT = function MQTTSessionManager_subscrib
   else
     session[MQTT.Subscriptions][topic] = [callback];
 
-  return channelContext.send(topic, MQTT.METHODS.SUBSCRIBE);
+  return channelContext.create(topic, MQTT.METHODS.SUBSCRIBE).send();
 };
 
 function MQTTSessionClient_disconnect(channelContext) {

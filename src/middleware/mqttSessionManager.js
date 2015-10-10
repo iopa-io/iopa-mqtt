@@ -221,7 +221,9 @@ function MQTTSessionManager_publishMQTT(topic, payload) {
     {
         db_Subscriptions[topic].forEach(function(client){
             var session = db_Clients[client];
-            session[SERVER.ParentContext].send(topic, MQTT.METHODS.PUBLISH, payload);
+            var context = session[SERVER.ParentContext].create(topic, MQTT.METHODS.PUBLISH);
+            context[IOPA.Body].end(payload);
+            context.dispatch(true);
         });
         
     } else

@@ -55,7 +55,7 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
    // SERVER   
     if ([MQTT.METHODS.CONNACK, MQTT.METHODS.PINGRESP].indexOf(context.response[IOPA.Method]) >=0)
     {  
-       context[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
+       context.response[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
             context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = setTimeout(function() {
                 context.response[IOPA.Body].end();
                 context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = null;
@@ -66,7 +66,7 @@ MQTTAutoAck.prototype.invoke = function MQTTAutoAck_invoke(context, next) {
     {  
        context.response[SERVER.RawStream] = new iopaStream.OutgoingStreamTransform(this._write.bind(this, context, context.response[SERVER.RawStream]));  
             context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = setTimeout(function() {
-                context.response[IOPA.Body].write("");
+                context.response[IOPA.Body].end("");
                 context[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.TIMER] = null;
                 }, 50);
     }
@@ -93,7 +93,7 @@ MQTTAutoAck.prototype.dispatch = function MQTTAutoAck_dispatch(context, next) {
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 MQTTAutoAck.prototype._invokeOnParentResponse = function MQTTAutoAck_invokeOnParentResponse(channelContext, context) {
-    if ([MQTT.METHODS.PUBACK].indexOf(context.response[IOPA.Method]) >=0)
+    if (context.response && [MQTT.METHODS.PUBACK].indexOf(context.response[IOPA.Method]) >=0)
     {  
         process.nextTick(function() {
           context.response[IOPA.Body].end();
